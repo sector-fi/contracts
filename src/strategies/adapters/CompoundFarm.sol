@@ -1,0 +1,50 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.2;
+
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+
+import "../../interfaces/compound/IComptroller.sol";
+import "../../mixins/ICompound.sol";
+import "../../mixins/IFarmable.sol";
+import "../../interfaces/uniswap/IUniswapV2Pair.sol";
+import "../../interfaces/uniswap/IWETH.sol";
+import "../../libraries/UniUtils.sol";
+
+// import "hardhat/console.sol";
+
+abstract contract CompoundFarm is ICompound, IFarmable {
+	using SafeERC20 for IERC20;
+	using UniUtils for IUniswapV2Pair;
+
+	IUniswapV2Router01 private _router; // use router here
+	IERC20 _farmToken;
+
+	function __CompoundFarm_init_(address router_, address token_) internal initializer {
+		_farmToken = IERC20(token_);
+		_router = IUniswapV2Router01(router_);
+		_farmToken.safeApprove(address(_router), type(uint256).max);
+	}
+
+	function lendFarmRouter() public view override returns (IUniswapV2Router01) {
+		return _router;
+	}
+
+	function _harvestLending(HarvestSwapParms[] calldata swapParams)
+		internal
+		override
+		returns (uint256[] memory harvested)
+	{
+		// comp token rewards
+		ICTokenErc20[] memory cTokens = new ICTokenErc20[](2);
+		cTokens[0] = cTokenLend();
+		cTokens[1] = cTokenBorrow();
+		comptroller().claimComp(address(this), cTokens);
+
+		harvested = new uint256[](1);
+		harvested[0] = _farmToken.balanceOf(address(this));
+		if (harvested[0] == 0) return harvested;
+
+		_swap(_router, swapParams[0], address(_farmToken), harvested[0]);
+		emit HarvestedToken(address(_farmToken), harvested[0]);
+	}
+}

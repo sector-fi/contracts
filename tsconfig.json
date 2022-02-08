@@ -1,0 +1,6 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {},
+  "include": ["./scripts", "./deploy", "./test", "./utils"],
+  "files": ["./hardhat.config.ts"]
+}

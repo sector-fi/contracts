@@ -1,1 +1,4 @@
-# contracts
+# Scion Contracts
+
+## Permissions Architecture
+
