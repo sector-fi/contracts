@@ -255,16 +255,19 @@ abstract contract HedgedLP is IBase, BaseStrategy, ILending, IFarmableLp, IUniLp
 	// MANAGER + OWNER METHODS
 
 	function rebalance() external onlyAuth checkPrice nonReentrant {
+		// call this first to ensure we use an updated borrowBalance when computing offset
 		uint256 tvl = _getAndUpdateTVL();
+		uint256 positionOffset = getPositionOffset();
+
+		// don't rebalance unless we exceeded the threshold
+		require(positionOffset > rebalanceThreshold, "HLP: REB-THRESH"); // maybe next time...
+
 		if (tvl == 0) return;
 		uint256 targetUnderlyingLP = _totalToLp(tvl);
-		(uint256 underlyingLp, ) = _getLPBalances();
 
-		(bool needsRebalance, uint256 positionOffset) = _shouldRebalance(underlyingLp);
-		require(needsRebalance, "HLP: REB-THRESH"); // maybe next time...
-		uint256 targetCollateral = tvl - targetUnderlyingLP;
-
-		_rebalancePosition(targetUnderlyingLP, targetCollateral);
+		// pass targetUnderlyingLP, tragetCollateral to _rebalancePosition
+		// add .15% for swap fees
+		_rebalancePosition(targetUnderlyingLP, tvl - (10015 * targetUnderlyingLP) / 10000);
 		emit Rebalance(_shortToUnderlying(1e18), positionOffset, tvl);
 	}
 
@@ -295,24 +298,6 @@ abstract contract HedgedLP is IBase, BaseStrategy, ILending, IFarmableLp, IUniLp
 		return _underlying.balanceOf(address(this));
 	}
 
-	function _shouldRebalance(uint256 underlyingLp)
-		internal
-		returns (bool needsRebalance, uint256 positionOffset)
-	{
-		uint256 borrowBalance = _oraclePriceOfShort(_updateAndGetBorrowBalance());
-
-		if (borrowBalance == 0 || underlyingLp == 0)
-			return (borrowBalance != underlyingLp, positionOffset);
-
-		// this is the % by which our position has moved from beeing balanced
-		positionOffset = underlyingLp > borrowBalance
-			? ((underlyingLp - borrowBalance) * BPS_ADJUST) / borrowBalance
-			: ((borrowBalance - underlyingLp) * BPS_ADJUST) / borrowBalance;
-
-		// don't rebalance unless
-		needsRebalance = positionOffset > rebalanceThreshold;
-	}
-
 	function _decreaseLpTo(uint256 targetUnderlyingLP)
 		internal
 		returns (uint256 underlyingRemove, uint256 shortRemove)
@@ -334,8 +319,10 @@ abstract contract HedgedLP is IBase, BaseStrategy, ILending, IFarmableLp, IUniLp
 
 		// borrow funds or repay loan
 		if (targetBorrow > currentBorrow) {
-			// remove extra lp
-			_decreaseLpTo(targetUnderlyingLP);
+			// remove extra lp (we may need to remove more in order to add more collateral)
+			_decreaseLpTo(
+				_needUnderlying(targetUnderlyingLP, targetCollateral) > 0 ? 0 : targetUnderlyingLP
+			);
 			// add collateral
 			_adjustCollateral(targetCollateral);
 			_borrow(targetBorrow - currentBorrow);
@@ -351,12 +338,16 @@ abstract contract HedgedLP is IBase, BaseStrategy, ILending, IFarmableLp, IUniLp
 		///////////////////////////
 		//// INCREASE LP POSITION
 		///////////////////////
-
 		uint256 underlyingBalance = _underlying.balanceOf(address(this));
 		uint256 shortBalance = _short.balanceOf(address(this));
 
-		uint256 addUnderlying = (underlyingBalance + _shortToUnderlying(shortBalance)) / 2;
-		uint256 addShort = _underlyingToShort(addUnderlying);
+		// here we make sure we don't add extra lp
+		(, uint256 shortLP) = _getLPBalances();
+		uint256 addShort = min(
+			shortBalance + _underlyingToShort(underlyingBalance),
+			targetBorrow - shortLP
+		);
+		uint256 addUnderlying = _shortToUnderlying(addShort);
 
 		// buy or sell underlying
 		if (addUnderlying < underlyingBalance) {
@@ -389,8 +380,21 @@ abstract contract HedgedLP is IBase, BaseStrategy, ILending, IFarmableLp, IUniLp
 		// don't need to use min with underlying and short because we did oracle check
 		// amounts are exact because we used swap price above
 		uint256 liquidity = _addLiquidity(amntUnderlying, amntShort);
-
 		_depositIntoFarm(liquidity);
+	}
+
+	function _needUnderlying(uint256 tragetUnderlying, uint256 targetCollateral)
+		internal
+		view
+		returns (uint256)
+	{
+		uint256 collateralBalance = _getCollateralBalance();
+		if (targetCollateral < collateralBalance) return 0;
+		(uint256 underlyingLp, ) = _getLPBalances();
+		uint256 uBalance = tragetUnderlying > underlyingLp ? tragetUnderlying - underlyingLp : 0;
+		uint256 addCollateral = targetCollateral - collateralBalance;
+		if (uBalance >= addCollateral) return 0;
+		return addCollateral - uBalance;
 	}
 
 	// TVL
@@ -456,11 +460,16 @@ abstract contract HedgedLP is IBase, BaseStrategy, ILending, IFarmableLp, IUniLp
 		tvl = collateralBalance + lpBalance - borrowBalance + underlyingBalance + shortBalance;
 	}
 
-	function getPositionOffset() external view returns (uint256 positionOffset) {
+	function getPositionOffset() public view returns (uint256 positionOffset) {
 		(, uint256 shortLp) = _getLPBalances();
 		uint256 borrowBalance = _getBorrowBalance();
+		// TODO
+		// uint256 shortBalance = shortLp + _short.balanceOf(address(this));
 
 		if (shortLp == borrowBalance) return 0;
+		// if short lp > 0 and borrowBalance is 0 we are off by inf, returning 100% should be enough
+		if (borrowBalance == 0) return 10000;
+
 		// this is the % by which our position has moved from beeing balanced
 		positionOffset = shortLp > borrowBalance
 			? ((shortLp - borrowBalance) * BPS_ADJUST) / borrowBalance

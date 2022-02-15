@@ -79,7 +79,7 @@ contract VaultsTest is DSTestPlus {
 		assertEq(vault.feePercent(), 0.1e18);
 
 		vm.prank(address(1));
-		vm.expectRevert("Vault: NO_AUTH");
+		vm.expectRevert("Ownable: caller is not the owner");
 		vault.setFeePercent(0.1e18);
 	}
 
@@ -121,7 +121,7 @@ contract VaultsTest is DSTestPlus {
 		assertTrue(vault.isPublic());
 
 		vm.prank(address(1));
-		vm.expectRevert("Ownable: caller is not the owner");
+		vm.expectRevert("Vault: NO_AUTH");
 		vault.setPublic(true);
 	}
 
@@ -146,7 +146,7 @@ contract VaultsTest is DSTestPlus {
 		assertEq(vault.getMaxTvl(), 1e18);
 
 		vm.prank(address(1));
-		vm.expectRevert("Ownable: caller is not the owner");
+		vm.expectRevert("Vault: NO_AUTH");
 		vault.setMaxTvl(1e18);
 	}
 
@@ -201,11 +201,12 @@ contract VaultsTest is DSTestPlus {
 
 		assertEq(vault.getMaxTvl(), type(uint256).max);
 
-		strategy1.setMaxTvl(10e18);
-		strategy2.setMaxTvl(5e18);
+		// make sure we don't overflow
+		strategy1.setMaxTvl(type(uint256).max);
+		strategy2.setMaxTvl(type(uint256).max);
 		vault.updateStratTvl();
 
-		assertEq(vault.getMaxTvl(), 10e18 + 5e18);
+		assertEq(vault.getMaxTvl(), type(uint256).max);
 
 		strategy1.setMaxTvl(fuzz);
 		strategy2.setMaxTvl(25e18);
@@ -1039,6 +1040,51 @@ contract VaultsTest is DSTestPlus {
 		vm.prank(address(1));
 		vm.expectRevert("Ownable: caller is not the owner");
 		vault.distrustStrategy(strategy1);
+	}
+
+	/*///////////////////////////////////////////////////////////////
+                        MIGRATE STRATEGY TESTS / FAIL
+    //////////////////////////////////////////////////////////////*/
+	function testMigrateStrategy() public {
+		vault.addStrategy(strategy1);
+		assertEq(vault.getWithdrawalQueue().length, 1);
+
+		underlying.mint(address(this), 1e18);
+		underlying.approve(address(vault), 1e18);
+		vault.deposit(1e18);
+		vault.depositIntoStrategy(strategy1, 1e18);
+
+		vault.migrateStrategy(strategy1, strategy2, 0);
+		assertEq(address(vault.withdrawalQueue(0)), address(strategy2));
+		(bool trusted1, uint256 balance1) = vault.getStrategyData(strategy1);
+		(bool trusted2, uint256 balance2) = vault.getStrategyData(strategy2);
+
+		assertFalse(trusted1);
+		assertTrue(trusted2);
+
+		assertEq(balance1, 0);
+		assertEq(balance2, 1e18);
+	}
+
+	function testMigrateStrategyNotInQueue() public {
+		vault.trustStrategy(strategy1);
+		assertEq(vault.getWithdrawalQueue().length, 0);
+
+		underlying.mint(address(this), 1e18);
+		underlying.approve(address(vault), 1e18);
+		vault.deposit(1e18);
+		vault.depositIntoStrategy(strategy1, 1e18);
+
+		vault.migrateStrategy(strategy1, strategy2, 0);
+		assertEq(address(vault.withdrawalQueue(0)), address(strategy2));
+		(bool trusted1, uint256 balance1) = vault.getStrategyData(strategy1);
+		(bool trusted2, uint256 balance2) = vault.getStrategyData(strategy2);
+
+		assertFalse(trusted1);
+		assertTrue(trusted2);
+
+		assertEq(balance1, 0);
+		assertEq(balance2, 1e18);
 	}
 
 	/*///////////////////////////////////////////////////////////////

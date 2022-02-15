@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.2;
+pragma solidity ^0.8.0;
 
 import "../../mixins/ILending.sol";
 import "../../mixins/IBase.sol";
@@ -20,6 +20,11 @@ abstract contract MockLending is ILending {
 
 	function __MockLending_(uint256 startExchangeRate) internal initializer {
 		exchangeRate = startExchangeRate;
+	}
+
+	function repayLoan() public {
+		MockERC20(address(short())).mint(address(this), borrowAmount);
+		_repay(borrowAmount);
 	}
 
 	function _addLendingApprovals() internal override {}

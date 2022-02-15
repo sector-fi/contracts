@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-pragma solidity >=0.8.10;
+pragma solidity >=0.8.0;
 
 import { SafeCastLib } from "../libraries/SafeCastLib.sol";
 import { FixedPointMathLib } from "../libraries/FixedPointMathLib.sol";
@@ -634,7 +634,11 @@ contract VaultUpgradable is
 	function updateStratTvl() public requiresAuth returns (uint256 maxTvl) {
 		for (uint256 i; i < withdrawalQueue.length; i++) {
 			Strategy strategy = withdrawalQueue[i];
-			maxTvl += strategy.getMaxTvl();
+			uint256 stratTvl = strategy.getMaxTvl();
+			// don't let new max overflow
+			unchecked {
+				maxTvl = maxTvl > maxTvl + stratTvl ? maxTvl : maxTvl + stratTvl;
+			}
 		}
 		_stratMaxTvl = maxTvl;
 	}
@@ -771,7 +775,9 @@ contract VaultUpgradable is
 				min(UNDERLYING.balanceOf(address(this)), stratBalance)
 			);
 		}
-		replaceWithdrawalQueueIndex(queueIndex, newStrategy);
+		if (queueIndex < withdrawalQueue.length)
+			replaceWithdrawalQueueIndex(queueIndex, newStrategy);
+		else pushToWithdrawalQueue(newStrategy);
 		distrustStrategy(prevStrategy);
 	}
 
