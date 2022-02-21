@@ -37,7 +37,7 @@ abstract contract BaseStrategy is Strategy, Ownable, ReentrancyGuard {
 
 	uint256 public BASE_UNIT; // 10 ** decimals
 
-	event Harvest(uint256 harvested);
+	event Harvest(uint256 harvested); // this is actual the tvl before harvest
 	event Deposit(address sender, uint256 amount);
 	event Withdraw(address sender, uint256 amount);
 	event Rebalance(uint256 shortPrice, uint256 tvlBeforeRebalance, uint256 positionOffset);

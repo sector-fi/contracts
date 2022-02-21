@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { VaultUpgradable as Vault } from "../../vault/VaultUpgradable.sol";
 import { ScionVaultFactory as VaultFactory } from "../../vault/ScionVaultFactory.sol";
 import { BeaconProxy } from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
+import { UpgradeableBeacon } from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 
 contract VaultFactoryTest is DSTestPlus {
 	VaultFactory vaultFactory;
@@ -17,7 +18,8 @@ contract VaultFactoryTest is DSTestPlus {
 	function setUp() public {
 		underlying = new MockERC20("Mock Token", "TKN", 18);
 		Vault vaultImp = new Vault();
-		vaultFactory = new VaultFactory(address(vaultImp));
+		UpgradeableBeacon beacon = new UpgradeableBeacon(address(vaultImp));
+		vaultFactory = new VaultFactory(beacon);
 	}
 
 	function testDeployVault() public {

@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0;
+pragma solidity ^0.8.0;
 
 import "../HedgedLP.sol";
 import "../adapters/Compound.sol";
-import "../adapters/MasterChefFarm.sol";
-import "../adapters/CompoundFarm.sol";
+import "../adapters/MiniChefFarm.sol";
+import "../adapters/BenqiFarm.sol";
 
 // import "hardhat/console.sol";
 
-contract USDCftmSPIRITscream is HedgedLP, Compound, CompoundFarm, MasterChefFarm {
+contract USDCavaxPNGqi is HedgedLP, Compound, BenqiFarm, MiniChefFarm {
 	constructor(Config memory config) BaseStrategy(config.vault, config.symbol, config.name) {
-		__MasterChefFarm_init_(
+		__MiniChefFarm_init_(
 			config.uniPair,
 			config.uniFarm,
-			config.lendRewardRouter,
+			config.farmRouter,
 			config.farmToken,
 			config.farmId
 		);
@@ -31,8 +31,8 @@ contract USDCftmSPIRITscream is HedgedLP, Compound, CompoundFarm, MasterChefFarm
 		__HedgedLP_init_(config.underlying, config.short, config.maxTvl);
 	}
 
-	// our borrow token is treated as ETH by benqi
+	// if borrow token is treated as ETH
 	function _isBase(uint8 id) internal pure override(ICompound) returns (bool) {
-		return false;
+		return id == 1 ? true : false;
 	}
 }

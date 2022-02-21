@@ -250,10 +250,9 @@ contract StrategyTest is DSTestPlus {
 			assertGt(strategy.loanHealth(), minLoanHealth);
 		}
 		// skip if we don't need to rebalance
-		// add some padding so that we can go back easier to account on % change going back
 		if (strategy.getPositionOffset() <= rebThresh) return;
 		strategy.rebalance();
-		assertApproxEq(strategy.getPositionOffset(), 0, 10);
+		assertApproxEq(strategy.getPositionOffset(), 0, 11);
 
 		// put price back
 		strategy.changePrice(1e36 / priceAdjust);
@@ -263,7 +262,7 @@ contract StrategyTest is DSTestPlus {
 		strategy.rebalance();
 		// strategy.logTvl();
 
-		assertApproxEq(strategy.getPositionOffset(), 0, 10);
+		assertApproxEq(strategy.getPositionOffset(), 0, 11);
 	}
 
 	// test rebalance when loand is 0

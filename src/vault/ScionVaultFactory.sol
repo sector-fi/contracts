@@ -18,22 +18,16 @@ contract ScionVaultFactory is Ownable {
 	using Bytes32AddressLib for bytes32;
 
 	// ======== Immutable storage ========
+	// @notice Upgrades are handled seprately via beacon
 	UpgradeableBeacon immutable beacon;
 
 	/*///////////////////////////////////////////////////////////////
                                CONSTRUCTOR
   //////////////////////////////////////////////////////////////*/
-	event Upgrade(address implementation);
 
 	/// @notice Creates a Vault factory.
-	constructor(address _implementation) Ownable() {
-		beacon = new UpgradeableBeacon(_implementation);
-		emit Upgrade(_implementation);
-	}
-
-	function upgradeTo(address newImplementation) external onlyOwner {
-		beacon.upgradeTo(newImplementation);
-		emit Upgrade(newImplementation);
+	constructor(UpgradeableBeacon beacon_) Ownable() {
+		beacon = beacon_;
 	}
 
 	function implementation() external view returns (address) {

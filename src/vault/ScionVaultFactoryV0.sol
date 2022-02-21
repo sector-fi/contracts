@@ -13,21 +13,27 @@ import "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 /// @title Scion Vault Factory
 /// @author 0x0scion (based on Rari Vault Factory)
 /// @notice Upgradable beacon factory which enables deploying a deterministic Vault for ERC20 token.
-contract ScionVaultFactoryV2 is Ownable {
+contract ScionVaultFactoryV0 is Ownable {
 	using Bytes32AddressLib for address;
 	using Bytes32AddressLib for bytes32;
 
 	// ======== Immutable storage ========
-	// @notice Upgrades are handled seprately via beacon
 	UpgradeableBeacon immutable beacon;
 
 	/*///////////////////////////////////////////////////////////////
                                CONSTRUCTOR
   //////////////////////////////////////////////////////////////*/
+	event Upgrade(address implementation);
 
 	/// @notice Creates a Vault factory.
-	constructor(UpgradeableBeacon beacon_) Ownable() {
-		beacon = beacon_;
+	constructor(address _implementation) Ownable() {
+		beacon = new UpgradeableBeacon(_implementation);
+		emit Upgrade(_implementation);
+	}
+
+	function upgradeTo(address newImplementation) external onlyOwner {
+		beacon.upgradeTo(newImplementation);
+		emit Upgrade(newImplementation);
 	}
 
 	function implementation() external view returns (address) {

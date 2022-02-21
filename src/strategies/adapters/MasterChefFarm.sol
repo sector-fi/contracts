@@ -12,7 +12,6 @@ import "../../mixins/IUniLp.sol";
 // import "hardhat/console.sol";
 
 abstract contract MasterChefFarm is IFarmableLp, IUniLp {
-	using UniUtils for IUniswapV2Pair;
 	using SafeERC20 for IERC20;
 
 	IMasterChef private _farm;
@@ -82,7 +81,4 @@ abstract contract MasterChefFarm is IFarmableLp, IUniLp {
 		uint256 poolLp = _pair.balanceOf(address(this));
 		return farmLp + poolLp;
 	}
-
-	// this gap is one less than MiniChefFarm
-	// uint256[50] private _gap;
 }

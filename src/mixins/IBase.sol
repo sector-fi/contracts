@@ -12,7 +12,7 @@ struct Config {
 	address uniFarm;
 	address farmToken;
 	uint256 farmId;
-	address router;
+	address farmRouter;
 	address comptroller;
 	address lendRewardRouter;
 	address lendRewardToken;

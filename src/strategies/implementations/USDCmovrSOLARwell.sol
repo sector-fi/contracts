@@ -4,17 +4,17 @@ pragma solidity ^0.8.0;
 import "../HedgedLP.sol";
 import "../adapters/Compound.sol";
 import "../adapters/MasterChefFarm.sol";
-import "../adapters/CompoundFarm.sol";
+import "../adapters/MoonwellFarm.sol";
 
 // import "hardhat/console.sol";
 
-contract USDCftmSPOOKYscream is HedgedLP, Compound, CompoundFarm, MasterChefFarm {
+contract USDCmovrSOLARwell is HedgedLP, Compound, MoonwellFarm, MasterChefFarm {
 	// HedgedLP should allways be intialized last
 	constructor(Config memory config) BaseStrategy(config.vault, config.symbol, config.name) {
 		__MasterChefFarm_init_(
 			config.uniPair,
 			config.uniFarm,
-			config.lendRewardRouter,
+			config.farmRouter,
 			config.farmToken,
 			config.farmId
 		);
@@ -31,8 +31,8 @@ contract USDCftmSPOOKYscream is HedgedLP, Compound, CompoundFarm, MasterChefFarm
 		__HedgedLP_init_(config.underlying, config.short, config.maxTvl);
 	}
 
-	// our borrow token is treated as ETH by benqi
+	// if borrow token is treated as ETH
 	function _isBase(uint8) internal pure override(ICompound) returns (bool) {
-		return false;
+		return true;
 	}
 }

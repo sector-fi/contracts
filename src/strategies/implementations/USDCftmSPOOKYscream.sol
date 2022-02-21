@@ -3,17 +3,18 @@ pragma solidity ^0.8.0;
 
 import "../HedgedLP.sol";
 import "../adapters/Compound.sol";
-import "../adapters/MiniChefFarm.sol";
-import "../adapters/BenqiFarm.sol";
+import "../adapters/MasterChefFarm.sol";
+import "../adapters/CompoundFarm.sol";
 
 // import "hardhat/console.sol";
 
-contract USDCavaxPNGqi is HedgedLP, Compound, BenqiFarm, MiniChefFarm {
+contract USDCftmSPOOKYscream is HedgedLP, Compound, CompoundFarm, MasterChefFarm {
+	// HedgedLP should allways be intialized last
 	constructor(Config memory config) BaseStrategy(config.vault, config.symbol, config.name) {
-		__MiniChefFarm_init_(
+		__MasterChefFarm_init_(
 			config.uniPair,
 			config.uniFarm,
-			config.lendRewardRouter,
+			config.farmRouter,
 			config.farmToken,
 			config.farmId
 		);
@@ -25,14 +26,13 @@ contract USDCavaxPNGqi is HedgedLP, Compound, BenqiFarm, MiniChefFarm {
 			config.safeCollateralRatio
 		);
 
-		__BenqiFarm_init_(config.lendRewardRouter, config.lendRewardToken, config.short);
+		__CompoundFarm_init_(config.lendRewardRouter, config.lendRewardToken);
 
-		// HedgedLP should allways be intialized last
 		__HedgedLP_init_(config.underlying, config.short, config.maxTvl);
 	}
 
-	// our borrow token is treated as ETH by benqi
-	function _isBase(uint8 id) internal pure override(ICompound) returns (bool) {
-		return id == 1 ? true : false;
+	// if borrow token is treated as ETH
+	function _isBase(uint8) internal pure override(ICompound) returns (bool) {
+		return false;
 	}
 }

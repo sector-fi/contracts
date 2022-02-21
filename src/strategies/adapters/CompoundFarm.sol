@@ -3,18 +3,14 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import "../../interfaces/compound/IComptroller.sol";
 import "../../mixins/ICompound.sol";
 import "../../mixins/IFarmable.sol";
 import "../../interfaces/uniswap/IUniswapV2Pair.sol";
-import "../../interfaces/uniswap/IWETH.sol";
-import "../../libraries/UniUtils.sol";
 
 // import "hardhat/console.sol";
 
 abstract contract CompoundFarm is ICompound, IFarmable {
 	using SafeERC20 for IERC20;
-	using UniUtils for IUniswapV2Pair;
 
 	IUniswapV2Router01 private _router; // use router here
 	IERC20 _farmToken;
@@ -31,6 +27,7 @@ abstract contract CompoundFarm is ICompound, IFarmable {
 
 	function _harvestLending(HarvestSwapParms[] calldata swapParams)
 		internal
+		virtual
 		override
 		returns (uint256[] memory harvested)
 	{
@@ -44,7 +41,8 @@ abstract contract CompoundFarm is ICompound, IFarmable {
 		harvested[0] = _farmToken.balanceOf(address(this));
 		if (harvested[0] == 0) return harvested;
 
-		_swap(_router, swapParams[0], address(_farmToken), harvested[0]);
+		if (address(_router) != address(0))
+			_swap(_router, swapParams[0], address(_farmToken), harvested[0]);
 		emit HarvestedToken(address(_farmToken), harvested[0]);
 	}
 }

@@ -31,7 +31,6 @@ abstract contract Compound is ICompound {
 		_cTokenBorrow = ICTokenErc20(cTokenBorrow_);
 		_comptroller = IComptroller(comptroller_);
 		_oracle = ICompPriceOracle(ComptrollerV1Storage(comptroller_).oracle());
-
 		_safeCollateralRatio = safeCollateralRatio_;
 		_enterMarket();
 	}

@@ -8,6 +8,7 @@ import { VaultRouterModule } from "../../vault/modules/VaultRouterModule.sol";
 
 import { VaultUpgradable as Vault } from "../../vault/VaultUpgradable.sol";
 import { ScionVaultFactory as VaultFactory } from "../../vault/ScionVaultFactory.sol";
+import { UpgradeableBeacon } from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 
 contract VaultRouterModuleTest is DSTestPlus {
 	Vault wethVault;
@@ -19,8 +20,8 @@ contract VaultRouterModuleTest is DSTestPlus {
 		weth = new WETH();
 
 		Vault vaultImp = new Vault();
-
-		VaultFactory factory = new VaultFactory(address(vaultImp));
+		UpgradeableBeacon beacon = new UpgradeableBeacon(address(vaultImp));
+		VaultFactory factory = new VaultFactory(beacon);
 
 		bytes memory data = abi.encodeWithSignature(
 			"initialize(address,address,address,uint256,uint64,uint128)",
