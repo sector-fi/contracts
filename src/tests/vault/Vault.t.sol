@@ -15,7 +15,7 @@ import { VaultUpgradable as Vault } from "../../vault/VaultUpgradable.sol";
 import { ScionVaultFactory as VaultFactory } from "../../vault/ScionVaultFactory.sol";
 import { UpgradeableBeacon } from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 
-import "hardhat/console.sol";
+// import "hardhat/console.sol";
 
 interface Vm {
 	function prank(address) external;
@@ -475,6 +475,40 @@ contract VaultsTest is DSTestPlus {
 		assertEq(vault.balanceOf(address(this)), 0);
 		assertEq(vault.balanceOfUnderlying(address(this)), 0);
 		assertEq(underlying.balanceOf(address(this)), preDepositBal);
+	}
+
+	function testWithdrawQueueEdgecase() public {
+		underlying.mint(address(this), 1e18);
+		underlying.approve(address(vault), 1e18);
+		vault.deposit(1e18);
+
+		vault.trustStrategy(strategy1);
+		vault.depositIntoStrategy(strategy1, 0.5e18);
+
+		vault.trustStrategy(strategy2);
+		vault.depositIntoStrategy(strategy2, 0.5e18);
+
+		Strategy[] memory strats = new Strategy[](2);
+		strats[0] = strategy1;
+		strats[1] = strategy2;
+
+		// add underlying - this will return less when withdrawing
+		underlying.mint(address(strategy1), 0.01e18);
+
+		// remove underlying - this will return less when withdrawing
+		underlying.burn(address(strategy1), 0.01e18);
+
+		vault.setWithdrawalQueue(strats);
+
+		vault.withdraw(0.8e18);
+
+		(, uint256 balanceMore) = vault.getStrategyData(strategy2);
+		assertEq(balanceMore, 0);
+
+		vault.withdraw(0.2e18);
+
+		(, uint256 balanceLess) = vault.getStrategyData(strategy1);
+		assertEq(balanceLess, 0);
 	}
 
 	/*///////////////////////////////////////////////////////////////

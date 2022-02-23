@@ -89,9 +89,8 @@ abstract contract MockLending is ILending {
 	}
 
 	function enforceCollateralFactor(uint256 _lendAmt, uint256 _borrowAmnt) internal view {
-		uint256 borrowUnderlying = ((_oraclePriceOfShort(_borrowAmnt) * 1e18) /
-			_getCollateralFactor());
-		require(_lendAmt >= borrowUnderlying, "OVER COLLATERAL");
+		uint256 collateral = ((_oraclePriceOfShort(_borrowAmnt) * 1e18) / _getCollateralFactor());
+		require(_lendAmt >= collateral, "OVER COLLATERAL");
 	}
 
 	function _repay(uint256 amount) internal virtual override {
@@ -118,4 +117,10 @@ abstract contract MockLending is ILending {
 		override
 		returns (uint256[] memory)
 	{}
+
+	// extreme case - our borrow balance is 0 and collateral is 1/2
+	function liquidate() external {
+		borrowAmount = 0;
+		lendAmount = lendAmount / 2;
+	}
 }

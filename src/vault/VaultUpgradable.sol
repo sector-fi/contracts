@@ -444,7 +444,7 @@ contract VaultUpgradable is
 			uint256 floatMissingForWithdrawal = underlyingAmount - float;
 
 			// Pull enough to cover the withdrawal and reach our target float percentage.
-			pullFromWithdrawalQueue(floatMissingForWithdrawal + floatMissingForTarget);
+			pullFromWithdrawalQueue(floatMissingForWithdrawal + floatMissingForTarget, float);
 		}
 
 		// Transfer the provided amount of underlying tokens.
@@ -868,7 +868,7 @@ contract VaultUpgradable is
 	/// @dev Withdraw a specific amount of underlying tokens from strategies in the withdrawal queue.
 	/// @param underlyingAmount The amount of underlying tokens to pull into float.
 	/// @dev Automatically removes depleted strategies from the withdrawal queue.
-	function pullFromWithdrawalQueue(uint256 underlyingAmount) internal {
+	function pullFromWithdrawalQueue(uint256 underlyingAmount, uint256 float) internal {
 		// We will update this variable as we pull from strategies.
 		uint256 amountLeftToPull = underlyingAmount;
 
@@ -885,7 +885,7 @@ contract VaultUpgradable is
 			uint256 strategyBalance = getStrategyData[strategy].balance;
 
 			// If the strategy is currently untrusted or was already depleted:
-			if (!getStrategyData[strategy].trusted) {
+			if (!getStrategyData[strategy].trusted || strategyBalance == 0) {
 				// Remove it from the queue.
 				withdrawalQueue.pop();
 
@@ -901,21 +901,36 @@ contract VaultUpgradable is
 				: strategyBalance;
 
 			unchecked {
+				emit StrategyWithdrawal(msg.sender, strategy, amountToPull);
+
+				// Withdraw from the strategy and revert if returns an error code.
+				require(strategy.redeemUnderlying(amountToPull) == 0, "REDEEM_FAILED");
+
+				// Cache the Vault's balance of ETH.
+				if (underlyingIsWETH) {
+					uint256 ethBalance = address(this).balance;
+					if (ethBalance != 0)
+						// If the Vault's underlying token is WETH compatible and we have some ETH, wrap it into WETH.
+						IWETH(payable(address(UNDERLYING))).deposit{ value: ethBalance }();
+				}
+
+				// the actual amount we withdraw may be less than what we tried (tx fees)
+				uint256 underlyingBalance = totalFloat();
+				uint256 withdrawn = totalFloat() - float; // impossible for float to decrease
+				float = underlyingBalance;
+
 				// Compute the balance of the strategy that will remain after we withdraw.
 				// Cannot underflow as we cap the amount to pull at the strategy's balance.
-				uint256 strategyBalanceAfterWithdrawal = strategyBalance - amountToPull;
+				uint256 strategyBalanceAfterWithdrawal = strategyBalance > withdrawn
+					? strategyBalance - withdrawn
+					: 0;
 
 				// Without this the next harvest would count the withdrawal as a loss.
 				getStrategyData[strategy].balance = strategyBalanceAfterWithdrawal.safeCastTo248();
 
 				// Adjust our goal based on how much we can pull from the strategy.
 				// Cannot underflow as we cap the amount to pull at the amount left to pull.
-				amountLeftToPull -= amountToPull;
-
-				emit StrategyWithdrawal(msg.sender, strategy, amountToPull);
-
-				// Withdraw from the strategy and revert if returns an error code.
-				require(strategy.redeemUnderlying(amountToPull) == 0, "REDEEM_FAILED");
+				amountLeftToPull = amountLeftToPull > withdrawn ? amountLeftToPull - withdrawn : 0;
 
 				// If we fully depleted the strategy:
 				if (strategyBalanceAfterWithdrawal == 0) {
@@ -935,13 +950,6 @@ contract VaultUpgradable is
 			// Cannot underflow as the balances of some strategies cannot exceed the sum of all.
 			totalStrategyHoldings -= underlyingAmount;
 		}
-
-		// Cache the Vault's balance of ETH.
-		uint256 ethBalance = address(this).balance;
-
-		// If the Vault's underlying token is WETH compatible and we have some ETH, wrap it into WETH.
-		if (ethBalance != 0 && underlyingIsWETH)
-			IWETH(payable(address(UNDERLYING))).deposit{ value: ethBalance }();
 	}
 
 	/// @notice Pushes a single strategy to front of the withdrawal queue.

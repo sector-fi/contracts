@@ -265,11 +265,23 @@ contract StrategyTest is DSTestPlus {
 		assertApproxEq(strategy.getPositionOffset(), 0, 11);
 	}
 
-	// test rebalance when loand is 0
-	function testRebgalanceEdge() public {
+	function testRebalanceAfterLiquidation() public {
 		underlying.mint(address(this), 1e18);
 		underlying.approve(address(strategy), 1e18);
 		strategy.mint(1e18);
+
+		// liquidates borrows and 1/2 of collateral
+		strategy.liquidate();
+
+		strategy.rebalance();
+		assertApproxEq(strategy.getPositionOffset(), 0, 11);
+	}
+
+	function testRebalanceEdge() public {
+		underlying.mint(address(this), 1e18);
+		underlying.approve(address(strategy), 1e18);
+		strategy.mint(1e18);
+
 		strategy.repayLoan();
 
 		assertEq(strategy.getPositionOffset(), 10000);

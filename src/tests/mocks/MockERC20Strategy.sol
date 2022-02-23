@@ -9,8 +9,6 @@ import { SafeERC20, IERC20 } from "@openzeppelin/contracts/token/ERC20/utils/Saf
 import { FixedPointMathLib } from "../../libraries/FixedPointMathLib.sol";
 import { ERC20Strategy } from "../../interfaces/Strategy.sol";
 
-// import { BaseStrategy } from "../../strategies/BaseStrategy.sol";
-
 contract MockERC20Strategy is ERC20("Mock cERC20 Strategy", "cERC20", 18), ERC20Strategy {
 	using SafeERC20 for IERC20;
 	using FixedPointMathLib for uint256;
