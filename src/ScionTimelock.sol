@@ -39,6 +39,7 @@ contract ScionTimelock is AccessControl {
 		uint256 value,
 		bytes data,
 		bytes32 predecessor,
+		bytes32 salt,
 		uint256 delay
 	);
 
@@ -205,7 +206,7 @@ contract ScionTimelock is AccessControl {
 	) public virtual onlyRole(PROPOSER_ROLE) {
 		bytes32 id = hashOperation(target, value, data, predecessor, salt);
 		_schedule(id, delay);
-		emit CallScheduled(id, 0, target, value, data, predecessor, delay);
+		emit CallScheduled(id, 0, target, value, data, predecessor, salt, delay);
 	}
 
 	/**
@@ -231,7 +232,7 @@ contract ScionTimelock is AccessControl {
 		bytes32 id = hashOperationBatch(targets, values, datas, predecessor, salt);
 		_schedule(id, delay);
 		for (uint256 i = 0; i < targets.length; ++i) {
-			emit CallScheduled(id, i, targets[i], values[i], datas[i], predecessor, delay);
+			emit CallScheduled(id, i, targets[i], values[i], datas[i], predecessor, salt, delay);
 		}
 	}
 
@@ -275,8 +276,9 @@ contract ScionTimelock is AccessControl {
 		uint256 value,
 		bytes calldata data,
 		bytes32 predecessor,
-		bytes32 id
+		bytes32 salt
 	) public payable virtual onlyRoleOrOpenRole(EXECUTOR_ROLE) {
+		bytes32 id = hashOperation(target, value, data, predecessor, salt);
 		_beforeCall(id, predecessor);
 		_call(id, 0, target, value, data);
 		_afterCall(id);
@@ -296,11 +298,12 @@ contract ScionTimelock is AccessControl {
 		uint256[] calldata values,
 		bytes[] calldata datas,
 		bytes32 predecessor,
-		bytes32 id
+		bytes32 salt
 	) public payable virtual onlyRoleOrOpenRole(EXECUTOR_ROLE) {
 		require(targets.length == values.length, "TimelockController: length mismatch");
 		require(targets.length == datas.length, "TimelockController: length mismatch");
 
+		bytes32 id = hashOperationBatch(targets, values, datas, predecessor, salt);
 		_beforeCall(id, predecessor);
 		for (uint256 i = 0; i < targets.length; ++i) {
 			_call(id, i, targets[i], values[i], datas[i]);

@@ -4,11 +4,11 @@ pragma solidity ^0.8.0;
 import "../HedgedLP.sol";
 import "../adapters/Compound.sol";
 import "../adapters/MiniChefFarm.sol";
-import "../adapters/BenqiFarm.sol";
+import "../adapters/CompMultiFarm.sol";
 
 // import "hardhat/console.sol";
 
-contract USDCavaxPNGqi is HedgedLP, Compound, BenqiFarm, MiniChefFarm {
+contract USDCavaxPNGqi is HedgedLP, Compound, CompMultiFarm, MiniChefFarm {
 	constructor(Config memory config) BaseStrategy(config.vault, config.symbol, config.name) {
 		__MiniChefFarm_init_(
 			config.uniPair,

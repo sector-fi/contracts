@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-only
+// SPDX-License-Identifier: AGPL-3.0
 pragma solidity >=0.8.0;
 
 import { SafeCastLib } from "../libraries/SafeCastLib.sol";
@@ -626,8 +626,11 @@ contract VaultUpgradable is
 		return min(_maxTvl, _stratMaxTvl);
 	}
 
+	event MaxTvlUpdated(uint256 maxTvl);
+
 	function setMaxTvl(uint256 maxTvl_) public requiresAuth {
 		_maxTvl = maxTvl_;
+		emit MaxTvlUpdated(min(_maxTvl, _stratMaxTvl));
 	}
 
 	// TODO should this just be a view computed on demand?
@@ -641,6 +644,7 @@ contract VaultUpgradable is
 			}
 		}
 		_stratMaxTvl = maxTvl;
+		emit MaxTvlUpdated(min(_maxTvl, _stratMaxTvl));
 	}
 
 	/*///////////////////////////////////////////////////////////////
@@ -916,11 +920,10 @@ contract VaultUpgradable is
 
 				// the actual amount we withdraw may be less than what we tried (tx fees)
 				uint256 underlyingBalance = totalFloat();
-				uint256 withdrawn = totalFloat() - float; // impossible for float to decrease
+				uint256 withdrawn = underlyingBalance - float; // impossible for float to decrease
 				float = underlyingBalance;
 
 				// Compute the balance of the strategy that will remain after we withdraw.
-				// Cannot underflow as we cap the amount to pull at the strategy's balance.
 				uint256 strategyBalanceAfterWithdrawal = strategyBalance > withdrawn
 					? strategyBalance - withdrawn
 					: 0;
@@ -929,7 +932,6 @@ contract VaultUpgradable is
 				getStrategyData[strategy].balance = strategyBalanceAfterWithdrawal.safeCastTo248();
 
 				// Adjust our goal based on how much we can pull from the strategy.
-				// Cannot underflow as we cap the amount to pull at the amount left to pull.
 				amountLeftToPull = amountLeftToPull > withdrawn ? amountLeftToPull - withdrawn : 0;
 
 				// If we fully depleted the strategy:
@@ -948,6 +950,7 @@ contract VaultUpgradable is
 		unchecked {
 			// Account for the withdrawals done in the loop above.
 			// Cannot underflow as the balances of some strategies cannot exceed the sum of all.
+			// This assumes we revert if we haven't withdrawn enough funds
 			totalStrategyHoldings -= underlyingAmount;
 		}
 	}

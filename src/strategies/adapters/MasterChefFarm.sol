@@ -8,6 +8,7 @@ import "../../interfaces/uniswap/IUniswapV2Pair.sol";
 
 import "../../mixins/IFarmableLp.sol";
 import "../../mixins/IUniLp.sol";
+import "../../interfaces/uniswap/IWETH.sol";
 
 // import "hardhat/console.sol";
 
@@ -69,6 +70,12 @@ abstract contract MasterChefFarm is IFarmableLp, IUniLp {
 
 		_swap(_router, swapParams[0], address(_farmToken), harvested[0]);
 		emit HarvestedToken(address(_farmToken), harvested[0]);
+
+		uint256 avaxBalance = address(this).balance;
+		if (avaxBalance > 0) {
+			IWETH(address(short())).deposit{ value: avaxBalance }();
+			emit HarvestedToken(address(short()), avaxBalance);
+		}
 	}
 
 	function _getFarmLp() internal view override returns (uint256) {

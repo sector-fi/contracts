@@ -4,11 +4,11 @@ pragma solidity ^0.8.0;
 import "../HedgedLP.sol";
 import "../adapters/Compound.sol";
 import "../adapters/MasterChefFarm.sol";
-import "../adapters/BenqiFarm.sol";
+import "../adapters/CompMultiFarm.sol";
 
 // import "hardhat/console.sol";
 
-contract USDCavaxJOEqi is HedgedLP, Compound, BenqiFarm, MasterChefFarm {
+contract USDCavaxJOEqi is HedgedLP, Compound, CompMultiFarm, MasterChefFarm {
 	constructor(Config memory config) BaseStrategy(config.vault, config.symbol, config.name) {
 		__MasterChefFarm_init_(
 			config.uniPair,

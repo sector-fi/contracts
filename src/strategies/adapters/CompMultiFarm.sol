@@ -6,7 +6,7 @@ import "./CompoundFarm.sol";
 
 // import "hardhat/console.sol";
 
-abstract contract BenqiFarm is CompoundFarm {
+abstract contract CompMultiFarm is CompoundFarm {
 	// BenQi has two two token rewards
 	// pid 0 is Qi token and pid 1 is AVAX (not wrapped)
 	function _harvestLending(HarvestSwapParms[] calldata swapParams)
@@ -14,7 +14,7 @@ abstract contract BenqiFarm is CompoundFarm {
 		override
 		returns (uint256[] memory harvested)
 	{
-		// qi rewards
+		// farm token on id 0
 		IClaimReward(address(comptroller())).claimReward(0, payable(address(this)));
 		harvested = new uint256[](1);
 		harvested[0] = _farmToken.balanceOf(address(this));
@@ -24,14 +24,13 @@ abstract contract BenqiFarm is CompoundFarm {
 			emit HarvestedToken(address(_farmToken), harvested[0]);
 		}
 
-		// specific to benqi
-		// avax rewards - we handle re-deposit here because strategy is not aware of these rewards
+		// base token rewards on id 1
 		IClaimReward(address(comptroller())).claimReward(1, payable(address(this)));
+
 		uint256 avaxBalance = address(this).balance;
-
-		// use avaxBalance to repay a portion of the loan
-		if (avaxBalance > 0) _repayBase(avaxBalance);
-
-		emit HarvestedToken(address(short()), avaxBalance);
+		if (avaxBalance > 0) {
+			IWETH(address(short())).deposit{ value: avaxBalance }();
+			emit HarvestedToken(address(short()), avaxBalance);
+		}
 	}
 }
