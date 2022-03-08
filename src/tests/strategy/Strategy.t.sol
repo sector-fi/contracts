@@ -5,15 +5,23 @@ import { DSTestPlus } from "../utils/DSTestPlus.sol";
 import { TestUtils } from "../utils/TestUtils.sol";
 
 import { IUniswapV2Pair } from "../../interfaces/uniswap/IUniswapV2Pair.sol";
+import { HarvestSwapParms } from "../../mixins/IFarmable.sol";
 import { MockHedgedLP } from "../mocks/MockHedgedLP.sol";
 import { MockERC20 } from "../mocks/MockERC20.sol";
 import { MockPair } from "../mocks/MockPair.sol";
-
 import "hardhat/console.sol";
+
+interface Vm {
+	function prank(address) external;
+
+	function expectRevert(bytes calldata) external;
+}
 
 contract StrategyTest is DSTestPlus {
 	using TestUtils for MockPair;
 	using TestUtils for MockHedgedLP;
+
+	Vm vm = Vm(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
 
 	uint256 START_EXCHANGE_RATE = 2.5e18;
 	MockHedgedLP strategy;
@@ -111,7 +119,7 @@ contract StrategyTest is DSTestPlus {
 
 	function testDepositWithdraw99Percent(uint128 fuzz) public {
 		// ASSUMES DEPOSIT MINIMUM OF AT LEAST 2
-		if (fuzz <= 1) return;
+		if (fuzz <= 0) return;
 		// deposit fixed amount, withdraw between 99% and 100% of balance
 		uint256 fixedAmt = 12345678912345678912;
 		uint256 min = (fixedAmt * 99) / 100;
@@ -147,9 +155,28 @@ contract StrategyTest is DSTestPlus {
 		assertApproxEq(underlying.balanceOf(address(this)), preDepositBal, 10);
 	}
 
-	// /*///////////////////////////////////////////////////////////////
-	//                     DEPOSIT/WITHDRAWAL FAIL CHECKS
-	// //////////////////////////////////////////////////////////////*/
+	function testWithdrawWithNoBalance() public {
+		uint256 startBalance = underlying.balanceOf(address(this));
+		strategy.redeemUnderlying(1e18);
+		assertEq(startBalance, underlying.balanceOf(address(this)));
+	}
+
+	function testWithdrawMoreThanBalance() public {
+		underlying.mint(address(this), 1e18);
+		underlying.approve(address(strategy), 1e18);
+
+		strategy.mint(1e18);
+
+		uint256 preRedeemBalance = underlying.balanceOf(address(this));
+
+		strategy.redeemUnderlying(1.5e18);
+
+		assertApproxEq(preRedeemBalance + 1e18, underlying.balanceOf(address(this)), 10);
+	}
+
+	/*///////////////////////////////////////////////////////////////
+	                    DEPOSIT/WITHDRAW FAIL TESTS
+	//////////////////////////////////////////////////////////////*/
 
 	function testFailDepositWithNotEnoughApproval() public {
 		underlying.mint(address(this), 1e18);
@@ -161,18 +188,6 @@ contract StrategyTest is DSTestPlus {
 	function testFailDepositWithNoApproval() public {
 		strategy.mint(1e18);
 	}
-
-	// function testFailWithdrawWithNoBalance() public {
-	// 	strategy.redeemUnderlying(1e18);
-	// }
-
-	// function testFailWithdrawMoreThanBalance() public {
-	// 	underlying.mint(address(this), 1e18);
-	// 	underlying.approve(address(strategy), 1e18);
-
-	// 	strategy.mint(1e18);
-	// 	strategy.redeemUnderlying(1.5e18);
-	// }
 
 	/*///////////////////////////////////////////////////////////////
 	                    REBALANCE TESTS
@@ -246,6 +261,7 @@ contract StrategyTest is DSTestPlus {
 
 		uint256 minLoanHealth = strategy.minLoanHealth();
 		if (strategy.loanHealth() <= minLoanHealth) {
+			assertGt(strategy.getPositionOffset(), rebThresh);
 			strategy.rebalanceLoan();
 			assertGt(strategy.loanHealth(), minLoanHealth);
 		}
@@ -287,5 +303,87 @@ contract StrategyTest is DSTestPlus {
 		assertEq(strategy.getPositionOffset(), 10000);
 		strategy.rebalance();
 		assertLt(strategy.getPositionOffset(), 10);
+	}
+
+	/*///////////////////////////////////////////////////////////////
+	                    HEDGEDLP TESTS
+	//////////////////////////////////////////////////////////////*/
+	function testSetMaxPriceMismatch() public {
+		strategy.setMaxPriceMismatch(1e18);
+	}
+
+	function setRebalanceThreshold() public {
+		strategy.setRebalanceThreshold(515);
+		assertEq(strategy.rebalanceThreshold(), 515);
+
+		strategy.setRebalanceThreshold(0);
+		assertEq(strategy.rebalanceThreshold(), 0);
+
+		strategy.setRebalanceThreshold(1);
+		assertEq(strategy.rebalanceThreshold(), 1);
+	}
+
+	function testSetMaxTvl() public {
+		strategy.setMaxTvl(2e18);
+
+		assertEq(strategy.getMaxTvl(), 2e18);
+
+		underlying.mint(address(this), 2e18);
+		underlying.approve(address(strategy), 2e18);
+
+		strategy.mint(2e18);
+
+		strategy.setMaxTvl(1e18);
+
+		assertEq(strategy.getMaxTvl(), 1e18);
+
+		vm.prank(address(1));
+		vm.expectRevert("Strat: NO_AUTH");
+		strategy.setMaxTvl(2e18);
+	}
+
+	function testDepositOverMaxTvl() public {
+		strategy.setMaxTvl(1e18);
+		underlying.mint(address(this), 2e18);
+		underlying.approve(address(strategy), 2e18);
+
+		vm.expectRevert("HLP: OVER_MAX_TVL");
+		strategy.mint(2e18);
+	}
+
+	function testClosePosition() public {
+		underlying.mint(address(this), 1e18);
+		underlying.approve(address(strategy), 1e18);
+
+		strategy.mint(1e18);
+
+		strategy.closePosition();
+		assertApproxEq(strategy.borrowAmount(), 0, 10);
+		assertApproxEq(strategy.lendAmount(), 0, 10);
+		assertApproxEq(strategy.balanceOfUnderlying(), 1e18, 10);
+
+		vm.prank(address(1));
+		vm.expectRevert("Strat: NO_AUTH");
+		strategy.closePosition();
+	}
+
+	function testClosePositionFuzz(uint104 fuzz) public {
+		if (fuzz == 0) return;
+		underlying.mint(address(this), fuzz);
+		underlying.approve(address(strategy), fuzz);
+
+		strategy.mint(fuzz);
+
+		strategy.closePosition();
+		assertApproxEq(strategy.borrowAmount(), 0, 10);
+		assertApproxEq(strategy.lendAmount(), 0, 10);
+		assertApproxEq(strategy.balanceOfUnderlying(), fuzz, 10);
+	}
+
+	function testClosePositionEdge() public {
+		strategy.closePosition();
+		assertApproxEq(strategy.borrowAmount(), 0, 10);
+		assertApproxEq(strategy.lendAmount(), 0, 10);
+		assertApproxEq(strategy.balanceOfUnderlying(), 0, 10);
 	}
 }

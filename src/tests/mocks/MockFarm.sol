@@ -4,8 +4,9 @@ pragma solidity ^0.8.0;
 import "../../mixins/IBase.sol";
 import "../../mixins/IUniLp.sol";
 import "../../mixins/IFarmableLp.sol";
+import { MockERC20 } from "../mocks/MockERC20.sol";
 
-import "hardhat/console.sol";
+// import "hardhat/console.sol";
 
 abstract contract MockFarm is IBase, IFarmableLp, IUniLp {
 	using UniUtils for IUniswapV2Pair;
@@ -26,8 +27,14 @@ abstract contract MockFarm is IBase, IFarmableLp, IUniLp {
 	function _harvestFarm(HarvestSwapParms[] calldata swapParams)
 		internal
 		override
-		returns (uint256[] memory)
-	{}
+		returns (uint256[] memory harvested)
+	{
+		// return some random harvested amount
+		MockERC20(swapParams[0].path[1]).mint(address(this), 0.1e18);
+		MockERC20(swapParams[1].path[1]).mint(address(this), 0.4e17);
+		harvested = new uint256[](1);
+		harvested[0] = 4.56e18;
+	}
 
 	function _withdrawFromFarm(uint256 amount) internal override {}
 

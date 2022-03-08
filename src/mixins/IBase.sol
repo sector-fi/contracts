@@ -16,7 +16,6 @@ struct Config {
 	address comptroller;
 	address lendRewardRouter;
 	address lendRewardToken;
-	uint256 safeCollateralRatio;
 	address vault;
 	string symbol;
 	string name;

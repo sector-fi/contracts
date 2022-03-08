@@ -13,8 +13,8 @@ abstract contract MockLending is ILending {
 	using SafeERC20 for IERC20;
 	using FixedPointMathLib for uint256;
 
-	uint256 borrowAmount = 0;
-	uint256 lendAmount = 0;
+	uint256 public borrowAmount = 0;
+	uint256 public lendAmount = 0;
 	uint256 exchangeRate;
 	uint256 maxBorrow = 2 * uint256(type(uint128).max);
 
@@ -60,10 +60,6 @@ abstract contract MockLending is ILending {
 
 	function _getCollateralFactor() internal view virtual override(ILending) returns (uint256) {
 		return 0.8e18;
-	}
-
-	function safeCollateralRatio() public pure virtual override(ILending) returns (uint256) {
-		return 9000;
 	}
 
 	function _getCollateralBalance() internal view virtual override returns (uint256) {

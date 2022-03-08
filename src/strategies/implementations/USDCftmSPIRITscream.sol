@@ -18,12 +18,7 @@ contract USDCftmSPIRITscream is HedgedLP, Compound, CompoundFarm, MasterChefFarm
 			config.farmId
 		);
 
-		__Compound_init_(
-			config.comptroller,
-			config.cTokenLend,
-			config.cTokenBorrow,
-			config.safeCollateralRatio
-		);
+		__Compound_init_(config.comptroller, config.cTokenLend, config.cTokenBorrow);
 
 		__CompoundFarm_init_(config.lendRewardRouter, config.lendRewardToken);
 

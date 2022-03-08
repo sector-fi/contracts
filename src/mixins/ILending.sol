@@ -72,8 +72,8 @@ abstract contract ILending is IBase {
 	function _freeCollateral() internal view returns (uint256) {
 		uint256 collateral = _getCollateralBalance();
 		uint256 borrowValue = _oraclePriceOfShort(_getBorrowBalance());
-		// stay within 5% of the liquidation threshold (this is allways temporary)
-		uint256 minCollateral = (100 * (borrowValue * 1e18)) / _getCollateralFactor() / 95;
+		// stay within 1% of the liquidation threshold (this is allways temporary)
+		uint256 minCollateral = (100 * (borrowValue * 1e18)) / _getCollateralFactor() / 99;
 		if (minCollateral > collateral) return 0;
 		return collateral - minCollateral;
 	}

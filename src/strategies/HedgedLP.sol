@@ -23,18 +23,22 @@ abstract contract HedgedLP is IBase, BaseStrategy, ILending, IFarmableLp, IUniLp
 	event SetMaxPriceMismatch(uint256 loanHealth);
 	event SetRebalanceThreshold(uint256 loanHealth);
 	event SetMaxTvl(uint256 loanHealth);
+	event SetSafeCollateralRaio(uint256 collateralRatio);
 
 	uint256 constant MINIMUM_LIQUIDITY = 1000;
-	uint256 private _maxPriceMismatch = 70; // .7% based around uniswap .6% bid-ask spread
-	uint256 public minLoanHealth = 1.05e18;
 
 	IERC20 private _underlying;
 	IERC20 private _short;
 
+	uint256 public maxPriceMismatch = 150; // 1.5%
+	uint256 constant maxAllowedMismatch = 300; // manager cannot make price mismatch more than 3%
+	uint256 public minLoanHealth = 1.02e18; // how close to liquidation we get
+
 	uint16 public rebalanceThreshold = 400; // 4% of lp
-	uint16 public version = 2;
 
 	uint256 private _maxTvl;
+	uint256 private _safeCollateralRatio = 8400; // 84% (90% is possible but not safe)
+
 	// for security we update this value only after oracle price checks in 'getAndUpdateTvl'
 	uint256 private _cachedBalanceOfUnderlying;
 
@@ -44,7 +48,7 @@ abstract contract HedgedLP is IBase, BaseStrategy, ILending, IFarmableLp, IUniLp
 		uint256 maxPrice = _oraclePriceOfShort(1e18);
 		(minPrice, maxPrice) = maxPrice > minPrice ? (minPrice, maxPrice) : (maxPrice, minPrice);
 		require(
-			((maxPrice - minPrice) * BPS_ADJUST) / maxPrice < _maxPriceMismatch,
+			((maxPrice - minPrice) * BPS_ADJUST) / maxPrice < maxPriceMismatch,
 			"HLP: PRICE_MISMATCH"
 		);
 		_;
@@ -69,14 +73,24 @@ abstract contract HedgedLP is IBase, BaseStrategy, ILending, IFarmableLp, IUniLp
 
 		// emit default settings events
 		emit setMinLoanHealth(minLoanHealth);
-		emit SetMaxPriceMismatch(_maxPriceMismatch);
+		emit SetMaxPriceMismatch(maxPriceMismatch);
 		emit SetRebalanceThreshold(rebalanceThreshold);
+		emit SetSafeCollateralRaio(_safeCollateralRatio);
 
 		// TODO should we add a revoke aprovals methods?
 		_addLendingApprovals();
 		_addFarmApprovals();
 
 		isInitialized = true;
+	}
+
+	function safeCollateralRatio() public view override returns (uint256) {
+		return _safeCollateralRatio;
+	}
+
+	function setSafeCollateralRatio(uint256 safeCollateralRatio_) public onlyOwner {
+		_safeCollateralRatio = safeCollateralRatio_;
+		emit SetSafeCollateralRaio(safeCollateralRatio_);
 	}
 
 	function decimals() public view returns (uint8) {
@@ -89,8 +103,10 @@ abstract contract HedgedLP is IBase, BaseStrategy, ILending, IFarmableLp, IUniLp
 		emit setMinLoanHealth(minLoanHealth_);
 	}
 
-	function setMaxPriceMismatch(uint256 maxPriceMismatch_) public onlyOwner {
-		_maxPriceMismatch = maxPriceMismatch_;
+	// manager can adjust max price if needed
+	function setMaxPriceMismatch(uint256 maxPriceMismatch_) public onlyAuth {
+		require(msg.sender == owner() || maxAllowedMismatch >= maxPriceMismatch_, "HLP: TOO LARGE");
+		maxPriceMismatch = maxPriceMismatch_;
 		emit SetMaxPriceMismatch(maxPriceMismatch_);
 	}
 
