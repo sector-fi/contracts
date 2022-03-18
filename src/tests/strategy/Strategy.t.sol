@@ -204,14 +204,14 @@ contract StrategyTest is DSTestPlus {
 		TestUtils.movePrice(IUniswapV2Pair(address(pair)), underlying, short, 1.1e18);
 		assertGt(strategy.getPositionOffset(), 400);
 
-		strategy.rebalance();
+		strategy.rebalance(strategy.getPriceOffset());
 		assertLe(strategy.getPositionOffset(), 10);
 
 		// _rebalanceUp price down -> LP up
 		strategy.changePrice(.909e18);
 		TestUtils.movePrice(IUniswapV2Pair(address(pair)), underlying, short, .909e18);
 		assertGt(strategy.getPositionOffset(), 400);
-		strategy.rebalance();
+		strategy.rebalance(strategy.getPriceOffset());
 		assertLe(strategy.getPositionOffset(), 10);
 	}
 
@@ -229,7 +229,7 @@ contract StrategyTest is DSTestPlus {
 		// skip if we don't need to rebalance
 		// add some padding so that we can go back easier to account on % change going back
 		if (strategy.getPositionOffset() <= rebThresh) return;
-		strategy.rebalance();
+		strategy.rebalance(strategy.getPriceOffset());
 
 		assertApproxEq(strategy.getPositionOffset(), 0, 10);
 
@@ -237,7 +237,7 @@ contract StrategyTest is DSTestPlus {
 		strategy.changePrice(1e36 / priceAdjust);
 		TestUtils.movePrice(IUniswapV2Pair(address(pair)), underlying, short, 1e36 / priceAdjust);
 		if (strategy.getPositionOffset() <= rebThresh) return;
-		strategy.rebalance();
+		strategy.rebalance(strategy.getPriceOffset());
 		assertApproxEq(strategy.getPositionOffset(), 0, 10);
 	}
 
@@ -246,7 +246,7 @@ contract StrategyTest is DSTestPlus {
 		underlying.approve(address(strategy), 1e18);
 
 		strategy.mint(1e18);
-		strategy.rebalance();
+		strategy.rebalance(strategy.getPriceOffset());
 	}
 
 	function testRebalanceLendFuzz(uint104 fuzz) public {
@@ -267,7 +267,7 @@ contract StrategyTest is DSTestPlus {
 		}
 		// skip if we don't need to rebalance
 		if (strategy.getPositionOffset() <= rebThresh) return;
-		strategy.rebalance();
+		strategy.rebalance(strategy.getPriceOffset());
 		assertApproxEq(strategy.getPositionOffset(), 0, 11);
 
 		// put price back
@@ -275,7 +275,7 @@ contract StrategyTest is DSTestPlus {
 		TestUtils.movePrice(IUniswapV2Pair(address(pair)), underlying, short, 1e36 / priceAdjust);
 
 		if (strategy.getPositionOffset() <= rebThresh) return;
-		strategy.rebalance();
+		strategy.rebalance(strategy.getPriceOffset());
 		// strategy.logTvl();
 
 		assertApproxEq(strategy.getPositionOffset(), 0, 11);
@@ -289,7 +289,7 @@ contract StrategyTest is DSTestPlus {
 		// liquidates borrows and 1/2 of collateral
 		strategy.liquidate();
 
-		strategy.rebalance();
+		strategy.rebalance(strategy.getPriceOffset());
 		assertApproxEq(strategy.getPositionOffset(), 0, 11);
 	}
 
@@ -301,8 +301,60 @@ contract StrategyTest is DSTestPlus {
 		strategy.repayLoan();
 
 		assertEq(strategy.getPositionOffset(), 10000);
-		strategy.rebalance();
+		strategy.rebalance(strategy.getPriceOffset());
 		assertLt(strategy.getPositionOffset(), 10);
+	}
+
+	function testPriceOffsetEdge() public {
+		underlying.mint(address(this), 1e18);
+		underlying.approve(address(strategy), 1e18);
+		strategy.mint(1e18);
+		strategy.changePrice(1.08e18);
+		TestUtils.movePrice(IUniswapV2Pair(address(pair)), underlying, short, 1.08e18);
+
+		uint256 health = strategy.loanHealth();
+		uint256 positionOffset = strategy.getPositionOffset();
+
+		strategy.changePrice(1.10e18);
+		health = strategy.loanHealth();
+		positionOffset = strategy.getPositionOffset();
+
+		assertLt(health, strategy.minLoanHealth());
+
+		strategy.rebalanceLoan();
+		assertLt(positionOffset, strategy.rebalanceThreshold());
+
+		strategy.rebalance(strategy.getPriceOffset());
+
+		health = strategy.loanHealth();
+		positionOffset = strategy.getPositionOffset();
+		assertGt(health, strategy.minLoanHealth());
+		assertLt(positionOffset, 10);
+		console.log("loan health / offset", health, positionOffset);
+	}
+
+	function testPriceOffsetEdge2() public {
+		underlying.mint(address(this), 1e18);
+		underlying.approve(address(strategy), 1e18);
+		strategy.mint(1e18);
+		strategy.changePrice(0.92e18);
+		TestUtils.movePrice(IUniswapV2Pair(address(pair)), underlying, short, 0.92e18);
+
+		uint256 health = strategy.loanHealth();
+		uint256 positionOffset = strategy.getPositionOffset();
+
+		strategy.changePrice(0.9e18);
+		health = strategy.loanHealth();
+		positionOffset = strategy.getPositionOffset();
+
+		assertGt(positionOffset, strategy.rebalanceThreshold());
+		strategy.rebalance(strategy.getPriceOffset());
+
+		health = strategy.loanHealth();
+		positionOffset = strategy.getPositionOffset();
+		assertGt(health, strategy.minLoanHealth());
+		assertLt(positionOffset, 10);
+		console.log("loan health / offset", health, positionOffset);
 	}
 
 	/*///////////////////////////////////////////////////////////////
@@ -357,14 +409,15 @@ contract StrategyTest is DSTestPlus {
 
 		strategy.mint(1e18);
 
-		strategy.closePosition();
+		strategy.closePosition(strategy.getPriceOffset());
 		assertApproxEq(strategy.borrowAmount(), 0, 10);
 		assertApproxEq(strategy.lendAmount(), 0, 10);
 		assertApproxEq(strategy.balanceOfUnderlying(), 1e18, 10);
 
+		uint256 priceOffset = strategy.getPriceOffset();
 		vm.prank(address(1));
 		vm.expectRevert("Strat: NO_AUTH");
-		strategy.closePosition();
+		strategy.closePosition(priceOffset);
 	}
 
 	function testClosePositionFuzz(uint104 fuzz) public {
@@ -374,14 +427,14 @@ contract StrategyTest is DSTestPlus {
 
 		strategy.mint(fuzz);
 
-		strategy.closePosition();
+		strategy.closePosition(strategy.getPriceOffset());
 		assertApproxEq(strategy.borrowAmount(), 0, 10);
 		assertApproxEq(strategy.lendAmount(), 0, 10);
 		assertApproxEq(strategy.balanceOfUnderlying(), fuzz, 10);
 	}
 
 	function testClosePositionEdge() public {
-		strategy.closePosition();
+		strategy.closePosition(strategy.getPriceOffset());
 		assertApproxEq(strategy.borrowAmount(), 0, 10);
 		assertApproxEq(strategy.lendAmount(), 0, 10);
 		assertApproxEq(strategy.balanceOfUnderlying(), 0, 10);

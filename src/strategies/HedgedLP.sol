@@ -30,27 +30,22 @@ abstract contract HedgedLP is IBase, BaseStrategy, ILending, IFarmableLp, IUniLp
 	IERC20 private _underlying;
 	IERC20 private _short;
 
-	uint256 public maxPriceMismatch = 150; // 1.5%
+	uint256 public maxPriceMismatch = 100; // 1%
 	uint256 constant maxAllowedMismatch = 300; // manager cannot make price mismatch more than 3%
-	uint256 public minLoanHealth = 1.02e18; // how close to liquidation we get
+	uint256 public minLoanHealth = 1.04e18; // how close to liquidation we get
 
 	uint16 public rebalanceThreshold = 400; // 4% of lp
 
 	uint256 private _maxTvl;
-	uint256 private _safeCollateralRatio = 8400; // 84% (90% is possible but not safe)
+	uint256 private _safeCollateralRatio = 8300; // 84% (90% is possible but not safe)
 
 	// for security we update this value only after oracle price checks in 'getAndUpdateTvl'
 	uint256 private _cachedBalanceOfUnderlying;
+	uint256 public constant version = 1;
 
-	modifier checkPrice() {
-		uint256 minPrice = _shortToUnderlying(1e18);
-		// oraclePrice
-		uint256 maxPrice = _oraclePriceOfShort(1e18);
-		(minPrice, maxPrice) = maxPrice > minPrice ? (minPrice, maxPrice) : (maxPrice, minPrice);
-		require(
-			((maxPrice - minPrice) * BPS_ADJUST) / maxPrice < maxPriceMismatch,
-			"HLP: PRICE_MISMATCH"
-		);
+	modifier checkPrice(uint256 maxSlippage) {
+		if (maxSlippage == 0) maxSlippage = maxPriceMismatch;
+		require(getPriceOffset() <= maxSlippage, "HLP: PRICE_MISMATCH");
 		_;
 		// any method that uses checkPrice should updated the _cachedBalanceOfUnderlying
 		(_cachedBalanceOfUnderlying, , , , , ) = getTVL();
@@ -153,7 +148,7 @@ abstract contract HedgedLP is IBase, BaseStrategy, ILending, IFarmableLp, IUniLp
 	function _deposit(uint256 amount)
 		internal
 		override
-		checkPrice
+		checkPrice(0)
 		nonReentrant
 		returns (uint256 newShares)
 	{
@@ -170,7 +165,7 @@ abstract contract HedgedLP is IBase, BaseStrategy, ILending, IFarmableLp, IUniLp
 	function _withdraw(uint256 amount)
 		internal
 		override
-		checkPrice
+		checkPrice(0)
 		nonReentrant
 		returns (uint256 burnShares)
 	{
@@ -250,7 +245,7 @@ abstract contract HedgedLP is IBase, BaseStrategy, ILending, IFarmableLp, IUniLp
 	)
 		external
 		onlyAuth
-		checkPrice
+		checkPrice(0)
 		nonReentrant
 		returns (uint256[] memory farmHarvest, uint256[] memory lendHarvest)
 	{
@@ -264,8 +259,12 @@ abstract contract HedgedLP is IBase, BaseStrategy, ILending, IFarmableLp, IUniLp
 	}
 
 	// MANAGER + OWNER METHODS
+	// Backwards compatability
+	function rebalance() external pure {
+		require(false, "MUST_USE_SLIPPAGE");
+	}
 
-	function rebalance() external onlyAuth checkPrice nonReentrant {
+	function rebalance(uint256 maxSlippage) external onlyAuth checkPrice(maxSlippage) nonReentrant {
 		// call this first to ensure we use an updated borrowBalance when computing offset
 		uint256 tvl = _getAndUpdateTVL();
 		uint256 positionOffset = getPositionOffset();
@@ -276,11 +275,12 @@ abstract contract HedgedLP is IBase, BaseStrategy, ILending, IFarmableLp, IUniLp
 		if (tvl == 0) return;
 		uint256 targetUnderlyingLP = _totalToLp(tvl);
 
-		_rebalancePosition(targetUnderlyingLP, tvl - targetUnderlyingLP);
+		// add .1% room for fees
+		_rebalancePosition((targetUnderlyingLP * 999) / 1000, tvl - targetUnderlyingLP);
 		emit Rebalance(_shortToUnderlying(1e18), positionOffset, tvl);
 	}
 
-	function closePosition() external onlyAuth checkPrice {
+	function closePosition(uint256 maxSlippage) public checkPrice(maxSlippage) onlyAuth {
 		_closePosition();
 	}
 
@@ -322,7 +322,7 @@ abstract contract HedgedLP is IBase, BaseStrategy, ILending, IFarmableLp, IUniLp
 	}
 
 	function _rebalancePosition(uint256 targetUnderlyingLP, uint256 targetCollateral) internal {
-		uint256 targetBorrow = _oraclePriceOfUnderlying(targetUnderlyingLP);
+		uint256 targetBorrow = _underlyingToShort(targetUnderlyingLP);
 		// we already updated tvl
 		uint256 currentBorrow = _getBorrowBalance();
 
@@ -355,6 +355,7 @@ abstract contract HedgedLP is IBase, BaseStrategy, ILending, IFarmableLp, IUniLp
 
 		// here we make sure we don't add extra lp
 		(, uint256 shortLP) = _getLPBalances();
+
 		if (targetBorrow < shortLP) return;
 
 		uint256 addShort = min(
@@ -373,6 +374,7 @@ abstract contract HedgedLP is IBase, BaseStrategy, ILending, IFarmableLp, IUniLp
 			);
 			underlyingBalance = addUnderlying;
 		} else if (shortBalance > addShort) {
+			// swap extra tokens back (this may end up using more gas)
 			underlyingBalance += pair()._swapExactTokensForTokens(
 				shortBalance - addShort,
 				address(_short),
@@ -422,11 +424,9 @@ abstract contract HedgedLP is IBase, BaseStrategy, ILending, IFarmableLp, IUniLp
 	function _getAndUpdateTVL() internal returns (uint256 tvl) {
 		uint256 collateralBalance = _updateAndGetCollateralBalance();
 		uint256 shortPosition = _updateAndGetBorrowBalance();
-		uint256 borrowBalance = _oraclePriceOfShort(shortPosition);
+		uint256 borrowBalance = _shortToUnderlying(shortPosition);
 		uint256 shortP = _short.balanceOf(address(this));
-		uint256 shortBalance = shortP == 0
-			? 0
-			: _shortToUnderlying(_short.balanceOf(address(this)));
+		uint256 shortBalance = shortP == 0 ? 0 : _shortToUnderlying(shortP);
 		(uint256 underlyingLp, ) = _getLPBalances();
 		uint256 underlyingBalance = _underlying.balanceOf(address(this));
 		tvl =
@@ -466,7 +466,7 @@ abstract contract HedgedLP is IBase, BaseStrategy, ILending, IFarmableLp, IUniLp
 		borrowBalance = _shortToUnderlying(borrowPosition);
 
 		uint256 shortPosition = _short.balanceOf(address(this));
-		uint256 shortBalance = shortPosition == 0 ? 0 : _oraclePriceOfShort(shortPosition);
+		uint256 shortBalance = shortPosition == 0 ? 0 : _shortToUnderlying(shortPosition);
 
 		(uint256 underlyingLp, uint256 shortLp) = _getLPBalances();
 		lpBalance = underlyingLp + _shortToUnderlying(shortLp);
@@ -488,6 +488,13 @@ abstract contract HedgedLP is IBase, BaseStrategy, ILending, IFarmableLp, IUniLp
 		positionOffset = shortBalance > borrowBalance
 			? ((shortBalance - borrowBalance) * BPS_ADJUST) / borrowBalance
 			: ((borrowBalance - shortBalance) * BPS_ADJUST) / borrowBalance;
+	}
+
+	function getPriceOffset() public view returns (uint256 offset) {
+		uint256 minPrice = _shortToUnderlying(1e18);
+		uint256 maxPrice = _oraclePriceOfShort(1e18);
+		(minPrice, maxPrice) = maxPrice > minPrice ? (minPrice, maxPrice) : (maxPrice, minPrice);
+		offset = ((maxPrice - minPrice) * BPS_ADJUST) / maxPrice;
 	}
 
 	// UTILS

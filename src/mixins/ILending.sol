@@ -44,9 +44,10 @@ abstract contract ILending is IBase {
 		return (_getCollateralFactor() * safeCollateralRatio()) / 1e18;
 	}
 
-	// returns loan health value which is minCollateral / collateralBalance
+	// returns loan health value which is collateralBalance / minCollateral
 	function loanHealth() public view returns (uint256) {
 		uint256 borrowValue = _oraclePriceOfShort(_getBorrowBalance());
+		if (borrowValue == 0) return 10000;
 		uint256 collateralBalance = _getCollateralBalance();
 		uint256 minCollateral = (borrowValue * 1e18) / _getCollateralFactor();
 		return (1e18 * collateralBalance) / minCollateral;
