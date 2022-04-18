@@ -18,7 +18,8 @@
     "fork:avalanche:fresh": "FORK_CHAIN='avalanche' bash ./scripts/fork_ava.sh",
     "fork:avalanche": "FORK_CHAIN='avalanche' bash ./scripts/fork_ava.sh --no-reset",
     "fork:fantom": "FORK_CHAIN='fantom' bash ./scripts/fork_fantom.sh --no-reset",
-    "fork": "INFURA_API_KEY=$(grep INFURA_API_KEY .env | cut -d '=' -f2) bash ./scripts/fork.sh"
+    "fork": "INFURA_API_KEY=$(grep INFURA_API_KEY .env | cut -d '=' -f2) bash ./scripts/fork.sh",
+    "coverage": "dapp test --coverage"
   },
   "dependencies": {
     "@anders-t/ethers-ledger": "^1.0.2",
@@ -26,7 +27,6 @@
     "@nomiclabs/hardhat-waffle": "^2.0.1",
     "@openzeppelin/contracts": "^4.3.2",
     "@openzeppelin/contracts-upgradeable": "^4.3.2",
-    "@pangolindex/exchange-contracts": "^1.0.2",
     "@typechain/ethers-v5": "^8.0.5",
     "chai": "^4.3.4",
     "dotenv": "^10.0.0",

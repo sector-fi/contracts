@@ -90,10 +90,13 @@ contract StrategyTest is DSTestPlus {
 
 	function testDepositWithdrawPartial(uint128 fuzz) public {
 		uint256 fixedAmt = 1e18;
+		fuzz = uint128(TestUtils.toRange(fuzz, 0, type(uint128).max) / fixedAmt);
 		uint256 fuzzPartial = (uint256(fuzz) * fixedAmt) / type(uint128).max;
 
-		underlying.mint(address(this), fixedAmt + fuzz);
-		underlying.approve(address(strategy), fixedAmt + fuzz);
+		uint256 deposit = fixedAmt + fuzz;
+
+		underlying.mint(address(this), deposit);
+		underlying.approve(address(strategy), deposit);
 		uint256 preDepositBal = underlying.balanceOf(address(this));
 		strategy.mint(fixedAmt);
 		assertEq(strategy.totalSupply(), fixedAmt);
@@ -250,7 +253,7 @@ contract StrategyTest is DSTestPlus {
 	}
 
 	function testRebalanceLendFuzz(uint104 fuzz) public {
-		uint256 priceAdjust = TestUtils.toRangeUint104(fuzz, uint256(1e18), uint256(2e18));
+		uint256 priceAdjust = TestUtils.toRangeUint104(fuzz, uint256(1.1e18), uint256(2e18));
 		underlying.mint(address(this), 1e18);
 		underlying.approve(address(strategy), 1e18);
 		strategy.mint(1e18);

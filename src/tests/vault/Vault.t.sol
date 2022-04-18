@@ -14,8 +14,9 @@ import { Strategy } from "../../interfaces/Strategy.sol";
 import { VaultUpgradable as Vault } from "../../vault/VaultUpgradable.sol";
 import { ScionVaultFactory as VaultFactory } from "../../vault/ScionVaultFactory.sol";
 import { UpgradeableBeacon } from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
+import { TestUtils } from "../utils/TestUtils.sol";
 
-// import "hardhat/console.sol";
+import "hardhat/console.sol";
 
 interface Vm {
 	function prank(address) external;
@@ -199,6 +200,8 @@ contract VaultsTest is DSTestPlus {
 	}
 
 	function testUpdateStratTvlFuzz(uint128 fuzz) public {
+		fuzz = uint128(TestUtils.toRange(fuzz, 0, type(uint128).max - 25e18));
+
 		vault.pushToWithdrawalQueue(strategy1);
 		vault.pushToWithdrawalQueue(strategy2);
 
