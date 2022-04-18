@@ -7,7 +7,7 @@ export DAPP_TEST_VERBOSITY=1
 export DAPP_TEST_SMTTIMEOUT=500000
 
 # export DAPP_LIB="packages/contracts/lib"
-export DAPP_SRC=psrc/
+export DAPP_SRC=src/
 export DAPP_OUT=.dapp/
 
 # These normally default to 0 which breaks some tests.
@@ -20,7 +20,7 @@ export DAPP_REMAPPINGS="hardhat/=node_modules/hardhat/
 hardhat-deploy/=node_modules/hardhat-deploy/
 ds-test/=dapptools/src/"
 
-export DEEP_FUZZ=true
+export DEEP_FUZZ=false
 
 if [ "$DEEP_FUZZ" = "true" ]
 then 

@@ -1,14 +1,14 @@
-import '@nomiclabs/hardhat-waffle';
-import 'solidity-coverage';
-import 'hardhat-deploy';
-import 'hardhat-contract-sizer';
-import 'tsconfig-paths/register';
-import 'hardhat-gas-reporter';
-import env from 'dotenv';
-import path from 'path';
+import '@nomiclabs/hardhat-waffle'
+import 'solidity-coverage'
+import 'hardhat-deploy'
+import 'hardhat-contract-sizer'
+import 'tsconfig-paths/register'
+import 'hardhat-gas-reporter'
+import env from 'dotenv'
+import path from 'path'
 
 // import 'hardhat-typechain'; // doesn't work rn
-env.config({ path: path.join(__dirname, '../../.env') });
+env.config({ path: path.join(__dirname, '.env') })
 
 const {
   DEPLOYER_KEY,
@@ -18,7 +18,7 @@ const {
   DEPLOYER,
   MANAGER,
   FORK_CHAIN,
-} = process.env;
+} = process.env
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
@@ -119,4 +119,4 @@ export default {
     outDir: 'typechain',
     target: 'ethers-v5',
   },
-};
+}

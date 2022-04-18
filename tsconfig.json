@@ -1,6 +1,27 @@
 {
-  "extends": "../../tsconfig.json",
-  "compilerOptions": {},
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "lib": ["es6", "dom"],
+    "target": "es5",
+    "jsx": "react-jsx",
+    "jsxImportSource": "theme-ui",
+    "allowJs": true,
+    "strict": true,
+    "sourceMap": true,
+    "declaration": true,
+    "noImplicitAny": false,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "moduleResolution": "node",
+    "baseUrl": ".",
+    "paths": {
+      "@sc1/common/utils": ["@sc1/common/lib/utils/index.js"],
+      "@sc1/common/utils/*": ["@sc1/common/lib/utils/*"],
+      "@sc1/common": ["node_modules/@sc1/common/lib/index.js"],
+      "@sc1/common/*": ["@sc1/common/lib/*"]
+    },
+    "noEmit": true
+  },
   "include": ["./scripts", "./deploy", "./test", "./utils"],
   "files": ["./hardhat.config.ts"]
 }
