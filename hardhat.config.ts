@@ -18,6 +18,8 @@ const {
   DEPLOYER,
   MANAGER,
   FORK_CHAIN,
+  TEAM_1,
+  TIMELOCK_ADMIN,
 } = process.env
 
 /**
@@ -43,6 +45,12 @@ export default {
       default: '0x6DdF9DA4C37DF97CB2458F85050E09994Cbb9C2A',
       hardhat: MANAGER,
       localhost: MANAGER,
+    },
+    timelockAdmin: {
+      default: TIMELOCK_ADMIN,
+    },
+    team1: {
+      default: TEAM_1,
     },
     addr1: {
       default: 1,

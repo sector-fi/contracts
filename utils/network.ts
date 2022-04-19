@@ -1,62 +1,65 @@
-import { ethers, config, network } from 'hardhat';
-import { RPC_URLS, IChain } from '@sc1/common/utils';
-import path from 'path';
-import { promises as fs } from 'fs';
-import { Contract, Signer } from 'ethers';
+import { ethers, config, network } from 'hardhat'
+import { RPC_URLS, IChain } from '@sc1/common/utils'
+import path from 'path'
+import { promises as fs } from 'fs'
+import { Contract, Signer } from 'ethers'
 
-const { parseUnits } = ethers.utils;
+const { parseUnits } = ethers.utils
 
-const { FORK_CHAIN = '' } = process.env;
-export const chain = FORK_CHAIN as IChain;
+const { FORK_CHAIN = '' } = process.env
+export const chain = FORK_CHAIN as IChain
 
 export const forkBlock = {
-  avalanche: 11348088,
-  fantom: 35896922,
+  avalanche: 11363765,
+  fantom: 36481193,
   moonriver: 1607038,
-};
+}
 
 export const setupAccount = async (address: string): Promise<Signer> => {
   await network.provider.request({
     method: 'hardhat_impersonateAccount',
     params: [address],
-  });
+  })
 
-  await fundAccount(address, '1000');
-  return await ethers.getSigner(address);
-};
+  await fundAccount(address, '1000')
+  return await ethers.getSigner(address)
+}
 
 export const updateOwner = async (
   contract: Contract,
-  newOwner: string
+  newOwner: string,
 ): Promise<void> => {
-  const owner = await contract.owner();
-  if (owner == newOwner) return;
-  const timelock = await ethers.getContract('ScionTimelock');
-  if (timelock.address === owner) return;
-  const ownerS = await setupAccount(owner);
-  await contract.connect(ownerS).transferOwnership(newOwner);
-};
+  const owner = await contract.owner()
+  if (owner == newOwner) return
+  const timelock = await ethers.getContract('ScionTimelock')
+  if (timelock.address === owner) {
+    console.log('Timelock owner')
+    return
+  }
+  const ownerS = await setupAccount(owner)
+  await contract.connect(ownerS).transferOwnership(newOwner)
+}
 
 export const fundAccount = async (
   address: string,
-  eth: string
+  eth: string,
 ): Promise<void> => {
   await network.provider.send('hardhat_setBalance', [
     address,
     parseUnits(eth).toHexString().replace('0x0', '0x'),
-  ]);
-};
+  ])
+}
 
-export const getRpcUrl = (_network: IChain): string => RPC_URLS[_network];
+export const getRpcUrl = (_network: IChain): string => RPC_URLS[_network]
 
 export const setMiningInterval = async (interval: number): Promise<void> => {
-  await network.provider.send('evm_setAutomine', [interval === 0]);
-  await network.provider.send('evm_setIntervalMining', [interval]);
-};
+  await network.provider.send('evm_setAutomine', [interval === 0])
+  await network.provider.send('evm_setIntervalMining', [interval])
+}
 
 export const forkNetwork = async (
   chain: IChain,
-  blockNumber?: number
+  blockNumber?: number,
 ): Promise<void> => {
   await network.provider.request({
     method: 'hardhat_reset',
@@ -69,29 +72,29 @@ export const forkNetwork = async (
         },
       },
     ],
-  });
-};
+  })
+}
 
 export const fastForwardDays = async (days: number): Promise<void> => {
-  await network.provider.send('evm_increaseTime', [days * 24 * 60 * 60]);
-};
+  await network.provider.send('evm_increaseTime', [days * 24 * 60 * 60])
+}
 
 export const copyDeployments = async (chain: IChain): Promise<void> => {
-  const src = `./deployments/${chain}`;
-  const dest = './deployments/hardhat';
-  await copyDir(src, dest, '.chainId');
-};
+  const src = `./deployments/${chain}`
+  const dest = './deployments/hardhat'
+  await copyDir(src, dest, '.chainId')
+}
 
 const copyDir = async (src: string, dest: string, exclude?: string) => {
-  const entries = await fs.readdir(src, { withFileTypes: true });
+  const entries = await fs.readdir(src, { withFileTypes: true })
   for (const entry of entries) {
-    if (exclude && entry.name === exclude) continue;
-    await fs.mkdir(dest, { recursive: true });
-    const srcPath = path.join(src, entry.name);
-    const destPath = path.join(dest, entry.name);
+    if (exclude && entry.name === exclude) continue
+    await fs.mkdir(dest, { recursive: true })
+    const srcPath = path.join(src, entry.name)
+    const destPath = path.join(dest, entry.name)
 
     entry.isDirectory()
       ? await copyDir(srcPath, destPath, exclude)
-      : await fs.copyFile(srcPath, destPath);
+      : await fs.copyFile(srcPath, destPath)
   }
-};
+}

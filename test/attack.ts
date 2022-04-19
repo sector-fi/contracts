@@ -16,7 +16,6 @@ import {
   forkBlock,
 } from '../utils'
 import { getUniAddr } from '@sc1/common/utils/address'
-
 import { IChain, strategies } from '@sc1/common'
 
 // this test demonstrates an (expensive) sandwitch attack on the Vault:
@@ -40,14 +39,14 @@ const { parseUnits, formatUnits } = utils
 const DEPOSIT_AMT = '100'
 
 const setupTest = deployments.createFixture(async (_, strat: any) => {
-  await deployments.fixture(['Mocks', 'Strategies'])
+  await deployments.fixture(['Timelock', 'DevOwner', 'Mocks', 'TimelockStrat'])
   await setMiningInterval(0)
-  const { deployer, addr1 } = await getNamedAccounts()
+  const { deployer, manager, addr1 } = await getNamedAccounts()
 
   const vault = await getVault()
 
   await vault.bulkAllow([addr1])
-  await vault.setFeePercent(0)
+  // await vault.setFeePercent(0)
   await setupAccount(deployer)
 
   await fundAccount(addr1, '1000000000')

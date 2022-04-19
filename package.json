@@ -14,15 +14,16 @@
     "local": "hardhat node",
     "build": "hardhat compile",
     "compile": "hardhat compile",
-    "export": "hardhat export --export-all ../common/src/contracts.json",
+    "export": "hardhat export --export-all ./node_modules/@sc1/common/lib/contracts.json",
     "fork:avalanche:fresh": "FORK_CHAIN='avalanche' bash ./scripts/fork_ava.sh",
     "fork:avalanche": "FORK_CHAIN='avalanche' bash ./scripts/fork_ava.sh --no-reset",
     "fork:fantom": "FORK_CHAIN='fantom' bash ./scripts/fork_fantom.sh --no-reset",
     "fork": "INFURA_API_KEY=$(grep INFURA_API_KEY .env | cut -d '=' -f2) bash ./scripts/fork.sh",
-    "coverage": "dapp test --coverage -cov-match"
+    "coverage": "dapp test --coverage -cov-match",
+    "postinstall": "yarn export"
   },
   "dependencies": {
-    "@sc1/common": "^0.12.9",
+    "@sc1/common": "^0.12.11",
     "@anders-t/ethers-ledger": "^1.0.2",
     "@nomiclabs/hardhat-ethers": "npm:hardhat-deploy-ethers@^0.3.0-beta.10",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
@@ -47,6 +48,7 @@
     "@types/chai": "^4.2.22",
     "@types/mocha": "^9.0.0",
     "ts-node-dev": "^1.1.8",
+    "typescript": "^4.6.0-dev.20211111",
     "tsconfig-paths": "^3.11.0"
   }
 }

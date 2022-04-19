@@ -62,7 +62,7 @@ strategies
   .slice(0, 1)
   // .filter((s) => s.symbol === 'USDCavaxPNGqi')
   .forEach((strat) => {
-    describe(strat.symbol, function () {
+    describe.skip(strat.symbol, function () {
       this.timeout(120000); // fantom is slow
 
       let owner;

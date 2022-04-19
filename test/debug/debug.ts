@@ -21,7 +21,7 @@ const forkBlock = {
   moonriver: 1665475,
 };
 
-describe('Strat Debug', function () {
+describe.skip('Strat Debug', function () {
   this.timeout(220000); // fantom is slow
 
   before(async () => {

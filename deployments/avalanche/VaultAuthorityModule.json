@@ -1,0 +1,818 @@
+{
+  "address": "0xE669f5f83616639D3442b03108233E0054afbef8",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_owner",
+          "type": "address"
+        },
+        {
+          "internalType": "contract Authority",
+          "name": "_authority",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "contract Authority",
+          "name": "authority",
+          "type": "address"
+        }
+      ],
+      "name": "AuthorityUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnerUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "bytes4",
+          "name": "functionSig",
+          "type": "bytes4"
+        },
+        {
+          "indexed": false,
+          "internalType": "bool",
+          "name": "enabled",
+          "type": "bool"
+        }
+      ],
+      "name": "PublicCapabilityUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint8",
+          "name": "role",
+          "type": "uint8"
+        },
+        {
+          "indexed": true,
+          "internalType": "bytes4",
+          "name": "functionSig",
+          "type": "bytes4"
+        },
+        {
+          "indexed": false,
+          "internalType": "bool",
+          "name": "enabled",
+          "type": "bool"
+        }
+      ],
+      "name": "RoleCapabilityUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "target",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "contract Authority",
+          "name": "authority",
+          "type": "address"
+        }
+      ],
+      "name": "TargetCustomAuthorityUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "uint8",
+          "name": "role",
+          "type": "uint8"
+        },
+        {
+          "indexed": false,
+          "internalType": "bool",
+          "name": "enabled",
+          "type": "bool"
+        }
+      ],
+      "name": "UserRoleUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "bool",
+          "name": "trusted",
+          "type": "bool"
+        }
+      ],
+      "name": "UserTrustUpdated",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "authority",
+      "outputs": [
+        {
+          "internalType": "contract Authority",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "target",
+          "type": "address"
+        },
+        {
+          "internalType": "bytes4",
+          "name": "functionSig",
+          "type": "bytes4"
+        }
+      ],
+      "name": "canCall",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint8",
+          "name": "role",
+          "type": "uint8"
+        },
+        {
+          "internalType": "bytes4",
+          "name": "functionSig",
+          "type": "bytes4"
+        }
+      ],
+      "name": "doesRoleHaveCapability",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "internalType": "uint8",
+          "name": "role",
+          "type": "uint8"
+        }
+      ],
+      "name": "doesUserHaveRole",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes4",
+          "name": "",
+          "type": "bytes4"
+        }
+      ],
+      "name": "getRoleCapabilities",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "getTargetCustomAuthority",
+      "outputs": [
+        {
+          "internalType": "contract Authority",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "getUserRoles",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes4",
+          "name": "",
+          "type": "bytes4"
+        }
+      ],
+      "name": "isCapabilityPublic",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "isTrusted",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "contract Authority",
+          "name": "newAuthority",
+          "type": "address"
+        }
+      ],
+      "name": "setAuthority",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "internalType": "bool",
+          "name": "trusted",
+          "type": "bool"
+        }
+      ],
+      "name": "setIsTrusted",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "setOwner",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes4",
+          "name": "functionSig",
+          "type": "bytes4"
+        },
+        {
+          "internalType": "bool",
+          "name": "enabled",
+          "type": "bool"
+        }
+      ],
+      "name": "setPublicCapability",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint8",
+          "name": "role",
+          "type": "uint8"
+        },
+        {
+          "internalType": "bytes4",
+          "name": "functionSig",
+          "type": "bytes4"
+        },
+        {
+          "internalType": "bool",
+          "name": "enabled",
+          "type": "bool"
+        }
+      ],
+      "name": "setRoleCapability",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "target",
+          "type": "address"
+        },
+        {
+          "internalType": "contract Authority",
+          "name": "customAuthority",
+          "type": "address"
+        }
+      ],
+      "name": "setTargetCustomAuthority",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "internalType": "uint8",
+          "name": "role",
+          "type": "uint8"
+        },
+        {
+          "internalType": "bool",
+          "name": "enabled",
+          "type": "bool"
+        }
+      ],
+      "name": "setUserRole",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0xf65287deda0ca711883a305d2d30b82de88f06c90531c2b7136b2eb6665c556e",
+  "receipt": {
+    "to": null,
+    "from": "0xf09c27934A92c56c7C0dD6cBAc858C35fBd5170f",
+    "contractAddress": "0xE669f5f83616639D3442b03108233E0054afbef8",
+    "transactionIndex": 25,
+    "gasUsed": "767424",
+    "logsBloom": "0x00000000000000010000000060000000000800800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000400000000000000000000020000000000000000000800000000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000080000000000000000000000000000000000000000000000000000000000002000000000000000000000000100000200000000000000000008000000000000020000000000000000000000008000000000000000000000020000000000000000000",
+    "blockHash": "0xedd6816249d73e672831f654b864e26e75b4d27210a61d863454ff16dfd39521",
+    "transactionHash": "0xf65287deda0ca711883a305d2d30b82de88f06c90531c2b7136b2eb6665c556e",
+    "logs": [
+      {
+        "transactionIndex": 25,
+        "blockNumber": 8370657,
+        "transactionHash": "0xf65287deda0ca711883a305d2d30b82de88f06c90531c2b7136b2eb6665c556e",
+        "address": "0xE669f5f83616639D3442b03108233E0054afbef8",
+        "topics": [
+          "0x4ffd725fc4a22075e9ec71c59edf9c38cdeb588a91b24fc5b61388c5be41282b",
+          "0x000000000000000000000000f09c27934a92c56c7c0dd6cbac858c35fbd5170f"
+        ],
+        "data": "0x",
+        "logIndex": 132,
+        "blockHash": "0xedd6816249d73e672831f654b864e26e75b4d27210a61d863454ff16dfd39521"
+      },
+      {
+        "transactionIndex": 25,
+        "blockNumber": 8370657,
+        "transactionHash": "0xf65287deda0ca711883a305d2d30b82de88f06c90531c2b7136b2eb6665c556e",
+        "address": "0xE669f5f83616639D3442b03108233E0054afbef8",
+        "topics": [
+          "0x2f658b440c35314f52658ea8a740e05b284cdc84dc9ae01e891f21b8933e7cad",
+          "0x0000000000000000000000000000000000000000000000000000000000000000"
+        ],
+        "data": "0x",
+        "logIndex": 133,
+        "blockHash": "0xedd6816249d73e672831f654b864e26e75b4d27210a61d863454ff16dfd39521"
+      },
+      {
+        "transactionIndex": 25,
+        "blockNumber": 8370657,
+        "transactionHash": "0xf65287deda0ca711883a305d2d30b82de88f06c90531c2b7136b2eb6665c556e",
+        "address": "0xE669f5f83616639D3442b03108233E0054afbef8",
+        "topics": [
+          "0xe95aec380cae16330d146d5499ef7db6f3657e477104a733e771bc09e500d986",
+          "0x000000000000000000000000f09c27934a92c56c7c0dd6cbac858c35fbd5170f"
+        ],
+        "data": "0x0000000000000000000000000000000000000000000000000000000000000001",
+        "logIndex": 134,
+        "blockHash": "0xedd6816249d73e672831f654b864e26e75b4d27210a61d863454ff16dfd39521"
+      }
+    ],
+    "blockNumber": 8370657,
+    "cumulativeGasUsed": "4634166",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [
+    "0xf09c27934A92c56c7C0dD6cBAc858C35fBd5170f",
+    "0x0000000000000000000000000000000000000000"
+  ],
+  "solcInputHash": "9dd7be47a0ead41cf23f6aa7653a5c36",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.10+commit.fc410830\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_owner\",\"type\":\"address\"},{\"internalType\":\"contract Authority\",\"name\":\"_authority\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"contract Authority\",\"name\":\"authority\",\"type\":\"address\"}],\"name\":\"AuthorityUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"}],\"name\":\"OwnerUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes4\",\"name\":\"functionSig\",\"type\":\"bytes4\"},{\"indexed\":false,\"internalType\":\"bool\",\"name\":\"enabled\",\"type\":\"bool\"}],\"name\":\"PublicCapabilityUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint8\",\"name\":\"role\",\"type\":\"uint8\"},{\"indexed\":true,\"internalType\":\"bytes4\",\"name\":\"functionSig\",\"type\":\"bytes4\"},{\"indexed\":false,\"internalType\":\"bool\",\"name\":\"enabled\",\"type\":\"bool\"}],\"name\":\"RoleCapabilityUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"target\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"contract Authority\",\"name\":\"authority\",\"type\":\"address\"}],\"name\":\"TargetCustomAuthorityUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"uint8\",\"name\":\"role\",\"type\":\"uint8\"},{\"indexed\":false,\"internalType\":\"bool\",\"name\":\"enabled\",\"type\":\"bool\"}],\"name\":\"UserRoleUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"bool\",\"name\":\"trusted\",\"type\":\"bool\"}],\"name\":\"UserTrustUpdated\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"authority\",\"outputs\":[{\"internalType\":\"contract Authority\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"target\",\"type\":\"address\"},{\"internalType\":\"bytes4\",\"name\":\"functionSig\",\"type\":\"bytes4\"}],\"name\":\"canCall\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint8\",\"name\":\"role\",\"type\":\"uint8\"},{\"internalType\":\"bytes4\",\"name\":\"functionSig\",\"type\":\"bytes4\"}],\"name\":\"doesRoleHaveCapability\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"},{\"internalType\":\"uint8\",\"name\":\"role\",\"type\":\"uint8\"}],\"name\":\"doesUserHaveRole\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes4\",\"name\":\"\",\"type\":\"bytes4\"}],\"name\":\"getRoleCapabilities\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"getTargetCustomAuthority\",\"outputs\":[{\"internalType\":\"contract Authority\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"getUserRoles\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes4\",\"name\":\"\",\"type\":\"bytes4\"}],\"name\":\"isCapabilityPublic\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"isTrusted\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"contract Authority\",\"name\":\"newAuthority\",\"type\":\"address\"}],\"name\":\"setAuthority\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"},{\"internalType\":\"bool\",\"name\":\"trusted\",\"type\":\"bool\"}],\"name\":\"setIsTrusted\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"setOwner\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes4\",\"name\":\"functionSig\",\"type\":\"bytes4\"},{\"internalType\":\"bool\",\"name\":\"enabled\",\"type\":\"bool\"}],\"name\":\"setPublicCapability\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint8\",\"name\":\"role\",\"type\":\"uint8\"},{\"internalType\":\"bytes4\",\"name\":\"functionSig\",\"type\":\"bytes4\"},{\"internalType\":\"bool\",\"name\":\"enabled\",\"type\":\"bool\"}],\"name\":\"setRoleCapability\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"target\",\"type\":\"address\"},{\"internalType\":\"contract Authority\",\"name\":\"customAuthority\",\"type\":\"address\"}],\"name\":\"setTargetCustomAuthority\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"},{\"internalType\":\"uint8\",\"name\":\"role\",\"type\":\"uint8\"},{\"internalType\":\"bool\",\"name\":\"enabled\",\"type\":\"bool\"}],\"name\":\"setUserRole\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"author\":\"Modified from Solmate (https://github.com/Rari-Capital/solmate/src/blob/main/src/auth/authorities/RolesAuthority.sol)\",\"events\":{\"PublicCapabilityUpdated(bytes4,bool)\":{\"params\":{\"enabled\":\"Whether the function is not publicly callable or not.\",\"functionSig\":\"The function that was made public or not.\"}},\"RoleCapabilityUpdated(uint8,bytes4,bool)\":{\"params\":{\"enabled\":\"Whether the role is now able to call the function or not.\",\"functionSig\":\"The function the role was enabled to call or not.\",\"role\":\"The role whose capabilities were updated.\"}},\"TargetCustomAuthorityUpdated(address,address)\":{\"params\":{\"authority\":\"The custom Authority set for the target.\",\"target\":\"The target who had a custom Authority set.\"}},\"UserRoleUpdated(address,uint8,bool)\":{\"params\":{\"enabled\":\"Whether the user had the role assigned/removed.\",\"role\":\"The role the user had assigned/removed.\",\"user\":\"The user who had their role updated.\"}}},\"kind\":\"dev\",\"methods\":{\"canCall(address,address,bytes4)\":{\"details\":\"First checks whether the target has a custom Authority assigned to it, if so returns whether the custom Authority would allow the user to call the desired function on the target, otherwise returns whether the user is able to call the desired function on any target contract.\",\"params\":{\"functionSig\":\"The function signature the user is trying to call.\",\"target\":\"The target the user is trying to call.\",\"user\":\"The user to check for.\"},\"returns\":{\"_0\":\"A boolean indicating if the user can call the function on the target.\"}},\"constructor\":{\"params\":{\"_authority\":\"The Authority of the module.\",\"_owner\":\"The owner of the module.\"}},\"doesRoleHaveCapability(uint8,bytes4)\":{\"params\":{\"functionSig\":\"function to check the role is capable of calling.\",\"role\":\"The role to check for.\"},\"returns\":{\"_0\":\"A boolean indicating whether the role has the capability.\"}},\"doesUserHaveRole(address,uint8)\":{\"params\":{\"role\":\"The role to check if the user has.\",\"user\":\"The user to check for.\"},\"returns\":{\"_0\":\"A boolean indicating whether the user has the role.\"}},\"setPublicCapability(bytes4,bool)\":{\"params\":{\"enabled\":\"Whether the function should be public or not.\",\"functionSig\":\"The function make public or not.\"}},\"setRoleCapability(uint8,bytes4,bool)\":{\"params\":{\"enabled\":\"Whether the role should be able to call the function or not.\",\"functionSig\":\"The function to enable the role to call or not.\",\"role\":\"The role to set a capability for.\"}},\"setTargetCustomAuthority(address,address)\":{\"params\":{\"customAuthority\":\"The custom Authority to set.\",\"target\":\"The target to set a custom Authority for.\"}},\"setUserRole(address,uint8,bool)\":{\"params\":{\"enabled\":\"Whether the user should have the role or not.\",\"role\":\"The role to assign to the user.\",\"user\":\"The user to assign a role to.\"}}},\"title\":\"Rari Vault Authority Module\",\"version\":1},\"userdoc\":{\"events\":{\"PublicCapabilityUpdated(bytes4,bool)\":{\"notice\":\"Emitted when whether a capability is public is updated.\"},\"RoleCapabilityUpdated(uint8,bytes4,bool)\":{\"notice\":\"Emitted when a role's capabilities are updated.\"},\"TargetCustomAuthorityUpdated(address,address)\":{\"notice\":\"Emitted when a custom Authority is set for a target.\"},\"UserRoleUpdated(address,uint8,bool)\":{\"notice\":\"Emitted when a user's role is updated.\"}},\"kind\":\"user\",\"methods\":{\"canCall(address,address,bytes4)\":{\"notice\":\"Returns if a user can call a given target's function.\"},\"constructor\":{\"notice\":\"Creates a Vault configuration module.\"},\"doesRoleHaveCapability(uint8,bytes4)\":{\"notice\":\"Gets whether a role has a specific capability.\"},\"doesUserHaveRole(address,uint8)\":{\"notice\":\"Gets whether a user has a specific role.\"},\"getRoleCapabilities(bytes4)\":{\"notice\":\"Maps function signatures to a set of all roles that can call the given function.\"},\"getTargetCustomAuthority(address)\":{\"notice\":\"Maps targets to a custom Authority to use for authorization.\"},\"getUserRoles(address)\":{\"notice\":\"Maps users to a bytes32 set of all the roles assigned to them.\"},\"isCapabilityPublic(bytes4)\":{\"notice\":\"Maps function signatures to a boolean indicating whether anyone can call the given function.\"},\"setPublicCapability(bytes4,bool)\":{\"notice\":\"Sets whether a capability is public or not.\"},\"setRoleCapability(uint8,bytes4,bool)\":{\"notice\":\"Sets a capability for a role.\"},\"setTargetCustomAuthority(address,address)\":{\"notice\":\"Sets a custom Authority for a target.\"},\"setUserRole(address,uint8,bool)\":{\"notice\":\"Assigns a role to a user.\"}},\"notice\":\"Module for managing access to secured Vault operations.\",\"version\":1}},\"settings\":{\"compilationTarget\":{\"src/vault/modules/VaultAuthorityModule.sol\":\"VaultAuthorityModule\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":1},\"remappings\":[]},\"sources\":{\"solmate/src/auth/Auth.sol\":{\"content\":\"// SPDX-License-Identifier: AGPL-3.0\\npragma solidity >=0.7.0;\\n\\n/// @notice A generic interface for a contract which provides authorization data to an Auth instance.\\n/// @author Modified from Dappsys (https://github.com/dapphub/ds-auth/blob/master/src/auth.sol)\\ninterface Authority {\\n    function canCall(\\n        address user,\\n        address target,\\n        bytes4 functionSig\\n    ) external view returns (bool);\\n}\\n\\n/// @notice Provides a flexible and updatable auth pattern which is completely separate from application logic.\\n/// @author Modified from Dappsys (https://github.com/dapphub/ds-auth/blob/master/src/auth.sol)\\nabstract contract Auth {\\n    event OwnerUpdated(address indexed owner);\\n\\n    event AuthorityUpdated(Authority indexed authority);\\n\\n    address public owner;\\n\\n    Authority public authority;\\n\\n    constructor(address _owner, Authority _authority) {\\n        owner = _owner;\\n        authority = _authority;\\n\\n        emit OwnerUpdated(_owner);\\n        emit AuthorityUpdated(_authority);\\n    }\\n\\n    function setOwner(address newOwner) public virtual requiresAuth {\\n        owner = newOwner;\\n\\n        emit OwnerUpdated(owner);\\n    }\\n\\n    function setAuthority(Authority newAuthority) public virtual requiresAuth {\\n        authority = newAuthority;\\n\\n        emit AuthorityUpdated(authority);\\n    }\\n\\n    function isAuthorized(address user, bytes4 functionSig) internal view virtual returns (bool) {\\n        Authority cachedAuthority = authority;\\n\\n        if (address(cachedAuthority) != address(0)) {\\n            try cachedAuthority.canCall(user, address(this), functionSig) returns (bool canCall) {\\n                if (canCall) return true;\\n            } catch {}\\n        }\\n\\n        return user == owner;\\n    }\\n\\n    modifier requiresAuth() {\\n        require(isAuthorized(msg.sender, msg.sig), \\\"UNAUTHORIZED\\\");\\n\\n        _;\\n    }\\n}\\n\",\"keccak256\":\"0x0b7f3c8e86c2b09d3498733bda5247da69956c971224f4e2a2a4e15d75eed707\",\"license\":\"AGPL-3.0\"},\"solmate/src/auth/Trust.sol\":{\"content\":\"// SPDX-License-Identifier: AGPL-3.0\\npragma solidity >=0.7.0;\\n\\n/// @notice Ultra minimal authorization logic for smart contracts.\\n/// @author Inspired by Dappsys V2 (https://github.com/dapp-org/dappsys-v2/blob/main/src/auth.sol)\\nabstract contract Trust {\\n    event UserTrustUpdated(address indexed user, bool trusted);\\n\\n    mapping(address => bool) public isTrusted;\\n\\n    constructor(address initialUser) {\\n        isTrusted[initialUser] = true;\\n\\n        emit UserTrustUpdated(initialUser, true);\\n    }\\n\\n    function setIsTrusted(address user, bool trusted) public virtual requiresTrust {\\n        isTrusted[user] = trusted;\\n\\n        emit UserTrustUpdated(user, trusted);\\n    }\\n\\n    modifier requiresTrust() {\\n        require(isTrusted[msg.sender], \\\"UNTRUSTED\\\");\\n\\n        _;\\n    }\\n}\\n\",\"keccak256\":\"0xb22f711d85048aa473533757a6e99006b29ae8604ea4a1d0b2d3cd6322578bb4\",\"license\":\"AGPL-3.0\"},\"src/vault/modules/VaultAuthorityModule.sol\":{\"content\":\"// SPDX-License-Identifier: AGPL-3.0\\npragma solidity 0.8.10;\\n\\nimport { Auth, Authority } from \\\"solmate/src/auth/Auth.sol\\\";\\nimport { Trust } from \\\"solmate/src/auth/Trust.sol\\\";\\n\\n/// @title Rari Vault Authority Module\\n/// @notice Module for managing access to secured Vault operations.\\n/// @author Modified from Solmate (https://github.com/Rari-Capital/solmate/src/blob/main/src/auth/authorities/RolesAuthority.sol)\\ncontract VaultAuthorityModule is Auth, Authority, Trust {\\n\\t/*///////////////////////////////////////////////////////////////\\n                               CONSTRUCTOR\\n    //////////////////////////////////////////////////////////////*/\\n\\n\\t/// @notice Creates a Vault configuration module.\\n\\t/// @param _owner The owner of the module.\\n\\t/// @param _authority The Authority of the module.\\n\\tconstructor(address _owner, Authority _authority) Auth(_owner, _authority) Trust(_owner) {}\\n\\n\\t/*///////////////////////////////////////////////////////////////\\n                       CUSTOM TARGET AUTHORITY STORAGE\\n    //////////////////////////////////////////////////////////////*/\\n\\n\\t/// @notice Maps targets to a custom Authority to use for authorization.\\n\\tmapping(address => Authority) public getTargetCustomAuthority;\\n\\n\\t/*///////////////////////////////////////////////////////////////\\n                             USER ROLE STORAGE\\n    //////////////////////////////////////////////////////////////*/\\n\\n\\t/// @notice Maps users to a bytes32 set of all the roles assigned to them.\\n\\tmapping(address => bytes32) public getUserRoles;\\n\\n\\t/// @notice Gets whether a user has a specific role.\\n\\t/// @param user The user to check for.\\n\\t/// @param role The role to check if the user has.\\n\\t/// @return A boolean indicating whether the user has the role.\\n\\tfunction doesUserHaveRole(address user, uint8 role) external view returns (bool) {\\n\\t\\tunchecked {\\n\\t\\t\\t// Generate a mask for the role.\\n\\t\\t\\tbytes32 shifted = bytes32(uint256(uint256(2)**uint256(role)));\\n\\n\\t\\t\\t// Check if the user has the role using the generated mask.\\n\\t\\t\\treturn bytes32(0) != getUserRoles[user] & shifted;\\n\\t\\t}\\n\\t}\\n\\n\\t/*///////////////////////////////////////////////////////////////\\n                        ROLE CAPABILITY STORAGE\\n    //////////////////////////////////////////////////////////////*/\\n\\n\\t/// @notice Maps function signatures to a set of all roles that can call the given function.\\n\\tmapping(bytes4 => bytes32) public getRoleCapabilities;\\n\\n\\t/// @notice Maps function signatures to a boolean indicating whether anyone can call the given function.\\n\\tmapping(bytes4 => bool) public isCapabilityPublic;\\n\\n\\t/// @notice Gets whether a role has a specific capability.\\n\\t/// @param role The role to check for.\\n\\t/// @param functionSig function to check the role is capable of calling.\\n\\t/// @return A boolean indicating whether the role has the capability.\\n\\tfunction doesRoleHaveCapability(uint8 role, bytes4 functionSig)\\n\\t\\texternal\\n\\t\\tview\\n\\t\\tvirtual\\n\\t\\treturns (bool)\\n\\t{\\n\\t\\tunchecked {\\n\\t\\t\\t// Generate a mask for the role.\\n\\t\\t\\tbytes32 shifted = bytes32(uint256(uint256(2)**uint256(role)));\\n\\n\\t\\t\\t// Check if the role has the capability using the generated mask.\\n\\t\\t\\treturn bytes32(0) != getRoleCapabilities[functionSig] & shifted;\\n\\t\\t}\\n\\t}\\n\\n\\t/*///////////////////////////////////////////////////////////////\\n                          AUTHORIZATION LOGIC\\n    //////////////////////////////////////////////////////////////*/\\n\\n\\t/// @notice Returns if a user can call a given target's function.\\n\\t/// @param user The user to check for.\\n\\t/// @param target The target the user is trying to call.\\n\\t/// @param functionSig The function signature the user is trying to call.\\n\\t/// @return A boolean indicating if the user can call the function on the target.\\n\\t/// @dev First checks whether the target has a custom Authority assigned to it, if so returns\\n\\t/// whether the custom Authority would allow the user to call the desired function on the target,\\n\\t/// otherwise returns whether the user is able to call the desired function on any target contract.\\n\\tfunction canCall(\\n\\t\\taddress user,\\n\\t\\taddress target,\\n\\t\\tbytes4 functionSig\\n\\t) external view override returns (bool) {\\n\\t\\t// Get the target's custom Authority. Will be address(0) if none.\\n\\t\\tAuthority customAuthority = getTargetCustomAuthority[target];\\n\\n\\t\\t// If a custom Authority is set, return whether the Authority allows the user to call the function.\\n\\t\\tif (address(customAuthority) != address(0))\\n\\t\\t\\treturn customAuthority.canCall(user, target, functionSig);\\n\\n\\t\\t// Return whether the user has an authorized role or the capability is publicly accessible.\\n\\t\\treturn\\n\\t\\t\\tbytes32(0) != getUserRoles[user] & getRoleCapabilities[functionSig] ||\\n\\t\\t\\tisCapabilityPublic[functionSig] ||\\n\\t\\t\\tisTrusted[user];\\n\\t}\\n\\n\\t/*///////////////////////////////////////////////////////////////\\n               CUSTOM TARGET AUTHORITY CONFIGURATION LOGIC\\n    //////////////////////////////////////////////////////////////*/\\n\\n\\t/// @notice Emitted when a custom Authority is set for a target.\\n\\t/// @param target The target who had a custom Authority set.\\n\\t/// @param authority The custom Authority set for the target.\\n\\tevent TargetCustomAuthorityUpdated(address indexed target, Authority indexed authority);\\n\\n\\t/// @notice Sets a custom Authority for a target.\\n\\t/// @param target The target to set a custom Authority for.\\n\\t/// @param customAuthority The custom Authority to set.\\n\\tfunction setTargetCustomAuthority(address target, Authority customAuthority)\\n\\t\\texternal\\n\\t\\trequiresAuth\\n\\t{\\n\\t\\t// Update the target's custom Authority.\\n\\t\\tgetTargetCustomAuthority[target] = customAuthority;\\n\\n\\t\\temit TargetCustomAuthorityUpdated(target, customAuthority);\\n\\t}\\n\\n\\t/*///////////////////////////////////////////////////////////////\\n                  ROLE CAPABILITY CONFIGURATION LOGIC\\n    //////////////////////////////////////////////////////////////*/\\n\\n\\t/// @notice Emitted when a role's capabilities are updated.\\n\\t/// @param role The role whose capabilities were updated.\\n\\t/// @param functionSig The function the role was enabled to call or not.\\n\\t/// @param enabled Whether the role is now able to call the function or not.\\n\\tevent RoleCapabilityUpdated(uint8 indexed role, bytes4 indexed functionSig, bool enabled);\\n\\n\\t/// @notice Sets a capability for a role.\\n\\t/// @param role The role to set a capability for.\\n\\t/// @param functionSig The function to enable the role to call or not.\\n\\t/// @param enabled Whether the role should be able to call the function or not.\\n\\tfunction setRoleCapability(\\n\\t\\tuint8 role,\\n\\t\\tbytes4 functionSig,\\n\\t\\tbool enabled\\n\\t) external requiresAuth {\\n\\t\\t// Get the previous set of role capabilities.\\n\\t\\tbytes32 lastCapabilities = getRoleCapabilities[functionSig];\\n\\n\\t\\tunchecked {\\n\\t\\t\\t// Generate a mask for the role.\\n\\t\\t\\tbytes32 shifted = bytes32(uint256(uint256(2)**uint256(role)));\\n\\n\\t\\t\\t// Update the role's capability set with the role mask.\\n\\t\\t\\tgetRoleCapabilities[functionSig] = enabled\\n\\t\\t\\t\\t? lastCapabilities | shifted\\n\\t\\t\\t\\t: lastCapabilities & ~shifted;\\n\\t\\t}\\n\\n\\t\\temit RoleCapabilityUpdated(role, functionSig, enabled);\\n\\t}\\n\\n\\t/*///////////////////////////////////////////////////////////////\\n                  PUBLIC CAPABILITY CONFIGURATION LOGIC\\n    //////////////////////////////////////////////////////////////*/\\n\\n\\t/// @notice Emitted when whether a capability is public is updated.\\n\\t/// @param functionSig The function that was made public or not.\\n\\t/// @param enabled Whether the function is not publicly callable or not.\\n\\tevent PublicCapabilityUpdated(bytes4 indexed functionSig, bool enabled);\\n\\n\\t/// @notice Sets whether a capability is public or not.\\n\\t/// @param functionSig The function make public or not.\\n\\t/// @param enabled Whether the function should be public or not.\\n\\tfunction setPublicCapability(bytes4 functionSig, bool enabled) external requiresAuth {\\n\\t\\t// Update whether the capability is public.\\n\\t\\tisCapabilityPublic[functionSig] = enabled;\\n\\n\\t\\temit PublicCapabilityUpdated(functionSig, enabled);\\n\\t}\\n\\n\\t/*///////////////////////////////////////////////////////////////\\n                      USER ROLE ASSIGNMENT LOGIC\\n    //////////////////////////////////////////////////////////////*/\\n\\n\\t/// @notice Emitted when a user's role is updated.\\n\\t/// @param user The user who had their role updated.\\n\\t/// @param role The role the user had assigned/removed.\\n\\t/// @param enabled Whether the user had the role assigned/removed.\\n\\tevent UserRoleUpdated(address indexed user, uint8 indexed role, bool enabled);\\n\\n\\t/// @notice Assigns a role to a user.\\n\\t/// @param user The user to assign a role to.\\n\\t/// @param role The role to assign to the user.\\n\\t/// @param enabled Whether the user should have the role or not.\\n\\tfunction setUserRole(\\n\\t\\taddress user,\\n\\t\\tuint8 role,\\n\\t\\tbool enabled\\n\\t) external requiresAuth {\\n\\t\\t// Get the previous set of roles.\\n\\t\\tbytes32 lastRoles = getUserRoles[user];\\n\\n\\t\\tunchecked {\\n\\t\\t\\t// Generate a mask for the role.\\n\\t\\t\\tbytes32 shifted = bytes32(uint256(uint256(2)**uint256(role)));\\n\\n\\t\\t\\t// Update the user's role set with the role mask.\\n\\t\\t\\tgetUserRoles[user] = enabled ? lastRoles | shifted : lastRoles & ~shifted;\\n\\t\\t}\\n\\n\\t\\temit UserRoleUpdated(user, role, enabled);\\n\\t}\\n}\\n\",\"keccak256\":\"0x0c3a4fdf112e03d00e1931b4e9b37ebb9877405aa13aeb9ebc1f0f29fd955259\",\"license\":\"AGPL-3.0\"}},\"version\":1}",
+  "bytecode": "0x608060405234801561001057600080fd5b50604051610d68380380610d6883398101604081905261002f9161013b565b600080546001600160a01b03199081166001600160a01b038581169182178455600180549093169085161790915560405184928392859290917f4ffd725fc4a22075e9ec71c59edf9c38cdeb588a91b24fc5b61388c5be41282b91a26040516001600160a01b038216907f2f658b440c35314f52658ea8a740e05b284cdc84dc9ae01e891f21b8933e7cad90600090a250506001600160a01b038116600081815260026020908152604091829020805460ff1916600190811790915591519182527fe95aec380cae16330d146d5499ef7db6f3657e477104a733e771bc09e500d986910160405180910390a2505050610175565b6001600160a01b038116811461013857600080fd5b50565b6000806040838503121561014e57600080fd5b825161015981610123565b602084015190925061016a81610123565b809150509250929050565b610be4806101846000396000f3fe608060405234801561001057600080fd5b50600436106100db5760003560e01c806306a36aee146100e05780630bade8a4146101135780630ea9b75b146101465780631393916a1461015b57806313af40351461016e5780634970840c146101815780634b5159da146101a157806367aff484146101b4578063728b952b146101c75780637a9e5e4b146101da5780638da5cb5b146101ed57806396d6487914610218578063b70096131461023b578063bf7e214f1461024e578063c53a398514610261578063e688747b1461028a578063ea7ca2761461029d575b600080fd5b6101006100ee36600461092c565b60046020526000908152604090205481565b6040519081526020015b60405180910390f35b610136610121366004610966565b60066020526000908152604090205460ff1681565b604051901515815260200161010a565b6101596101543660046109a0565b6102d4565b005b6101596101693660046109e7565b6103a3565b61015961017c36600461092c565b61044e565b61010061018f366004610966565b60056020526000908152604090205481565b6101596101af366004610a20565b6104c8565b6101596101c2366004610a3c565b610553565b6101596101d5366004610a6a565b61060e565b6101596101e836600461092c565b610697565b600054610200906001600160a01b031681565b6040516001600160a01b03909116815260200161010a565b61013661022636600461092c565b60026020526000908152604090205460ff1681565b610136610249366004610a98565b610713565b600154610200906001600160a01b031681565b61020061026f36600461092c565b6003602052600090815260409020546001600160a01b031681565b610136610298366004610adf565b610836565b6101366102ab366004610b12565b6001600160a01b03821660009081526004602052604090205460ff821660020a16151592915050565b6102ea336000356001600160e01b031916610861565b61030f5760405162461bcd60e51b815260040161030690610b3e565b60405180910390fd5b6001600160e01b0319821660009081526005602052604090205460ff841660020a8261033e5780198216610342565b8082175b6001600160e01b031985166000818152600560209081526040918290209390935551851515815290925060ff8716917fbfe16b2c35ce23dfd1ab0e7b5d086a10060c9b52d1574e1680c881b3b3a2b15191015b60405180910390a350505050565b3360009081526002602052604090205460ff166103ee5760405162461bcd60e51b8152602060048201526009602482015268155395149554d5115160ba1b6044820152606401610306565b6001600160a01b038216600081815260026020908152604091829020805460ff191685151590811790915591519182527fe95aec380cae16330d146d5499ef7db6f3657e477104a733e771bc09e500d98691015b60405180910390a25050565b610464336000356001600160e01b031916610861565b6104805760405162461bcd60e51b815260040161030690610b3e565b600080546001600160a01b0319166001600160a01b038316908117825560405190917f4ffd725fc4a22075e9ec71c59edf9c38cdeb588a91b24fc5b61388c5be41282b91a250565b6104de336000356001600160e01b031916610861565b6104fa5760405162461bcd60e51b815260040161030690610b3e565b6001600160e01b03198216600081815260066020908152604091829020805460ff191685151590811790915591519182527f36d28126bef21a4f3765d7fcb7c45cead463ae4c41094ef3b771ede5985441039101610442565b610569336000356001600160e01b031916610861565b6105855760405162461bcd60e51b815260040161030690610b3e565b6001600160a01b03831660009081526004602052604090205460ff831660020a826105b357801982166105b7565b8082175b6001600160a01b0386166000818152600460205260409081902092909255905160ff861692507f4c9bdd0c8e073eb5eda2250b18d8e5121ff27b62064fbeeeed4869bb99bc5bf29061039590861515815260200190565b610624336000356001600160e01b031916610861565b6106405760405162461bcd60e51b815260040161030690610b3e565b6001600160a01b0382811660008181526003602052604080822080546001600160a01b0319169486169485179055517fa4908e11a5f895b13d51526c331ac93cdd30e59772361c5d07874eb36bff20659190a35050565b6106ad336000356001600160e01b031916610861565b6106c95760405162461bcd60e51b815260040161030690610b3e565b600180546001600160a01b0319166001600160a01b0383169081179091556040517f2f658b440c35314f52658ea8a740e05b284cdc84dc9ae01e891f21b8933e7cad90600090a250565b6001600160a01b0380831660009081526003602052604081205490911680156107af5760405163b700961360e01b81526001600160a01b0382169063b70096139061076690889088908890600401610b64565b602060405180830381865afa158015610783573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906107a79190610b91565b91505061082f565b6001600160e01b031983166000908152600560209081526040808320546001600160a01b03891684526004909252909120541615158061080857506001600160e01b0319831660009081526006602052604090205460ff165b8061082b57506001600160a01b03851660009081526002602052604090205460ff165b9150505b9392505050565b6001600160e01b0319811660009081526005602052604090205460ff831660020a1615155b92915050565b6001546000906001600160a01b031680156108fb5760405163b700961360e01b81526001600160a01b0382169063b7009613906108a690879030908890600401610b64565b602060405180830381865afa9250505080156108df575060408051601f3d908101601f191682019092526108dc91810190610b91565b60015b6108e8576108fb565b80156108f95760019250505061085b565b505b50506000546001600160a01b0383811691161492915050565b6001600160a01b038116811461092957600080fd5b50565b60006020828403121561093e57600080fd5b813561082f81610914565b80356001600160e01b03198116811461096157600080fd5b919050565b60006020828403121561097857600080fd5b61082f82610949565b803560ff8116811461096157600080fd5b801515811461092957600080fd5b6000806000606084860312156109b557600080fd5b6109be84610981565b92506109cc60208501610949565b915060408401356109dc81610992565b809150509250925092565b600080604083850312156109fa57600080fd5b8235610a0581610914565b91506020830135610a1581610992565b809150509250929050565b60008060408385031215610a3357600080fd5b610a0583610949565b600080600060608486031215610a5157600080fd5b8335610a5c81610914565b92506109cc60208501610981565b60008060408385031215610a7d57600080fd5b8235610a8881610914565b91506020830135610a1581610914565b600080600060608486031215610aad57600080fd5b8335610ab881610914565b92506020840135610ac881610914565b9150610ad660408501610949565b90509250925092565b60008060408385031215610af257600080fd5b610afb83610981565b9150610b0960208401610949565b90509250929050565b60008060408385031215610b2557600080fd5b8235610b3081610914565b9150610b0960208401610981565b6020808252600c908201526b15539055551213d49256915160a21b604082015260600190565b6001600160a01b0393841681529190921660208201526001600160e01b0319909116604082015260600190565b600060208284031215610ba357600080fd5b815161082f8161099256fea2646970667358221220f316004ca2a2a8fbb8046d26c38a1624e8f34996ef6a4216936893f3b23e9e6e64736f6c634300080a0033",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106100db5760003560e01c806306a36aee146100e05780630bade8a4146101135780630ea9b75b146101465780631393916a1461015b57806313af40351461016e5780634970840c146101815780634b5159da146101a157806367aff484146101b4578063728b952b146101c75780637a9e5e4b146101da5780638da5cb5b146101ed57806396d6487914610218578063b70096131461023b578063bf7e214f1461024e578063c53a398514610261578063e688747b1461028a578063ea7ca2761461029d575b600080fd5b6101006100ee36600461092c565b60046020526000908152604090205481565b6040519081526020015b60405180910390f35b610136610121366004610966565b60066020526000908152604090205460ff1681565b604051901515815260200161010a565b6101596101543660046109a0565b6102d4565b005b6101596101693660046109e7565b6103a3565b61015961017c36600461092c565b61044e565b61010061018f366004610966565b60056020526000908152604090205481565b6101596101af366004610a20565b6104c8565b6101596101c2366004610a3c565b610553565b6101596101d5366004610a6a565b61060e565b6101596101e836600461092c565b610697565b600054610200906001600160a01b031681565b6040516001600160a01b03909116815260200161010a565b61013661022636600461092c565b60026020526000908152604090205460ff1681565b610136610249366004610a98565b610713565b600154610200906001600160a01b031681565b61020061026f36600461092c565b6003602052600090815260409020546001600160a01b031681565b610136610298366004610adf565b610836565b6101366102ab366004610b12565b6001600160a01b03821660009081526004602052604090205460ff821660020a16151592915050565b6102ea336000356001600160e01b031916610861565b61030f5760405162461bcd60e51b815260040161030690610b3e565b60405180910390fd5b6001600160e01b0319821660009081526005602052604090205460ff841660020a8261033e5780198216610342565b8082175b6001600160e01b031985166000818152600560209081526040918290209390935551851515815290925060ff8716917fbfe16b2c35ce23dfd1ab0e7b5d086a10060c9b52d1574e1680c881b3b3a2b15191015b60405180910390a350505050565b3360009081526002602052604090205460ff166103ee5760405162461bcd60e51b8152602060048201526009602482015268155395149554d5115160ba1b6044820152606401610306565b6001600160a01b038216600081815260026020908152604091829020805460ff191685151590811790915591519182527fe95aec380cae16330d146d5499ef7db6f3657e477104a733e771bc09e500d98691015b60405180910390a25050565b610464336000356001600160e01b031916610861565b6104805760405162461bcd60e51b815260040161030690610b3e565b600080546001600160a01b0319166001600160a01b038316908117825560405190917f4ffd725fc4a22075e9ec71c59edf9c38cdeb588a91b24fc5b61388c5be41282b91a250565b6104de336000356001600160e01b031916610861565b6104fa5760405162461bcd60e51b815260040161030690610b3e565b6001600160e01b03198216600081815260066020908152604091829020805460ff191685151590811790915591519182527f36d28126bef21a4f3765d7fcb7c45cead463ae4c41094ef3b771ede5985441039101610442565b610569336000356001600160e01b031916610861565b6105855760405162461bcd60e51b815260040161030690610b3e565b6001600160a01b03831660009081526004602052604090205460ff831660020a826105b357801982166105b7565b8082175b6001600160a01b0386166000818152600460205260409081902092909255905160ff861692507f4c9bdd0c8e073eb5eda2250b18d8e5121ff27b62064fbeeeed4869bb99bc5bf29061039590861515815260200190565b610624336000356001600160e01b031916610861565b6106405760405162461bcd60e51b815260040161030690610b3e565b6001600160a01b0382811660008181526003602052604080822080546001600160a01b0319169486169485179055517fa4908e11a5f895b13d51526c331ac93cdd30e59772361c5d07874eb36bff20659190a35050565b6106ad336000356001600160e01b031916610861565b6106c95760405162461bcd60e51b815260040161030690610b3e565b600180546001600160a01b0319166001600160a01b0383169081179091556040517f2f658b440c35314f52658ea8a740e05b284cdc84dc9ae01e891f21b8933e7cad90600090a250565b6001600160a01b0380831660009081526003602052604081205490911680156107af5760405163b700961360e01b81526001600160a01b0382169063b70096139061076690889088908890600401610b64565b602060405180830381865afa158015610783573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906107a79190610b91565b91505061082f565b6001600160e01b031983166000908152600560209081526040808320546001600160a01b03891684526004909252909120541615158061080857506001600160e01b0319831660009081526006602052604090205460ff165b8061082b57506001600160a01b03851660009081526002602052604090205460ff165b9150505b9392505050565b6001600160e01b0319811660009081526005602052604090205460ff831660020a1615155b92915050565b6001546000906001600160a01b031680156108fb5760405163b700961360e01b81526001600160a01b0382169063b7009613906108a690879030908890600401610b64565b602060405180830381865afa9250505080156108df575060408051601f3d908101601f191682019092526108dc91810190610b91565b60015b6108e8576108fb565b80156108f95760019250505061085b565b505b50506000546001600160a01b0383811691161492915050565b6001600160a01b038116811461092957600080fd5b50565b60006020828403121561093e57600080fd5b813561082f81610914565b80356001600160e01b03198116811461096157600080fd5b919050565b60006020828403121561097857600080fd5b61082f82610949565b803560ff8116811461096157600080fd5b801515811461092957600080fd5b6000806000606084860312156109b557600080fd5b6109be84610981565b92506109cc60208501610949565b915060408401356109dc81610992565b809150509250925092565b600080604083850312156109fa57600080fd5b8235610a0581610914565b91506020830135610a1581610992565b809150509250929050565b60008060408385031215610a3357600080fd5b610a0583610949565b600080600060608486031215610a5157600080fd5b8335610a5c81610914565b92506109cc60208501610981565b60008060408385031215610a7d57600080fd5b8235610a8881610914565b91506020830135610a1581610914565b600080600060608486031215610aad57600080fd5b8335610ab881610914565b92506020840135610ac881610914565b9150610ad660408501610949565b90509250925092565b60008060408385031215610af257600080fd5b610afb83610981565b9150610b0960208401610949565b90509250929050565b60008060408385031215610b2557600080fd5b8235610b3081610914565b9150610b0960208401610981565b6020808252600c908201526b15539055551213d49256915160a21b604082015260600190565b6001600160a01b0393841681529190921660208201526001600160e01b0319909116604082015260600190565b600060208284031215610ba357600080fd5b815161082f8161099256fea2646970667358221220f316004ca2a2a8fbb8046d26c38a1624e8f34996ef6a4216936893f3b23e9e6e64736f6c634300080a0033",
+  "devdoc": {
+    "author": "Modified from Solmate (https://github.com/Rari-Capital/solmate/src/blob/main/src/auth/authorities/RolesAuthority.sol)",
+    "events": {
+      "PublicCapabilityUpdated(bytes4,bool)": {
+        "params": {
+          "enabled": "Whether the function is not publicly callable or not.",
+          "functionSig": "The function that was made public or not."
+        }
+      },
+      "RoleCapabilityUpdated(uint8,bytes4,bool)": {
+        "params": {
+          "enabled": "Whether the role is now able to call the function or not.",
+          "functionSig": "The function the role was enabled to call or not.",
+          "role": "The role whose capabilities were updated."
+        }
+      },
+      "TargetCustomAuthorityUpdated(address,address)": {
+        "params": {
+          "authority": "The custom Authority set for the target.",
+          "target": "The target who had a custom Authority set."
+        }
+      },
+      "UserRoleUpdated(address,uint8,bool)": {
+        "params": {
+          "enabled": "Whether the user had the role assigned/removed.",
+          "role": "The role the user had assigned/removed.",
+          "user": "The user who had their role updated."
+        }
+      }
+    },
+    "kind": "dev",
+    "methods": {
+      "canCall(address,address,bytes4)": {
+        "details": "First checks whether the target has a custom Authority assigned to it, if so returns whether the custom Authority would allow the user to call the desired function on the target, otherwise returns whether the user is able to call the desired function on any target contract.",
+        "params": {
+          "functionSig": "The function signature the user is trying to call.",
+          "target": "The target the user is trying to call.",
+          "user": "The user to check for."
+        },
+        "returns": {
+          "_0": "A boolean indicating if the user can call the function on the target."
+        }
+      },
+      "constructor": {
+        "params": {
+          "_authority": "The Authority of the module.",
+          "_owner": "The owner of the module."
+        }
+      },
+      "doesRoleHaveCapability(uint8,bytes4)": {
+        "params": {
+          "functionSig": "function to check the role is capable of calling.",
+          "role": "The role to check for."
+        },
+        "returns": {
+          "_0": "A boolean indicating whether the role has the capability."
+        }
+      },
+      "doesUserHaveRole(address,uint8)": {
+        "params": {
+          "role": "The role to check if the user has.",
+          "user": "The user to check for."
+        },
+        "returns": {
+          "_0": "A boolean indicating whether the user has the role."
+        }
+      },
+      "setPublicCapability(bytes4,bool)": {
+        "params": {
+          "enabled": "Whether the function should be public or not.",
+          "functionSig": "The function make public or not."
+        }
+      },
+      "setRoleCapability(uint8,bytes4,bool)": {
+        "params": {
+          "enabled": "Whether the role should be able to call the function or not.",
+          "functionSig": "The function to enable the role to call or not.",
+          "role": "The role to set a capability for."
+        }
+      },
+      "setTargetCustomAuthority(address,address)": {
+        "params": {
+          "customAuthority": "The custom Authority to set.",
+          "target": "The target to set a custom Authority for."
+        }
+      },
+      "setUserRole(address,uint8,bool)": {
+        "params": {
+          "enabled": "Whether the user should have the role or not.",
+          "role": "The role to assign to the user.",
+          "user": "The user to assign a role to."
+        }
+      }
+    },
+    "title": "Rari Vault Authority Module",
+    "version": 1
+  },
+  "userdoc": {
+    "events": {
+      "PublicCapabilityUpdated(bytes4,bool)": {
+        "notice": "Emitted when whether a capability is public is updated."
+      },
+      "RoleCapabilityUpdated(uint8,bytes4,bool)": {
+        "notice": "Emitted when a role's capabilities are updated."
+      },
+      "TargetCustomAuthorityUpdated(address,address)": {
+        "notice": "Emitted when a custom Authority is set for a target."
+      },
+      "UserRoleUpdated(address,uint8,bool)": {
+        "notice": "Emitted when a user's role is updated."
+      }
+    },
+    "kind": "user",
+    "methods": {
+      "canCall(address,address,bytes4)": {
+        "notice": "Returns if a user can call a given target's function."
+      },
+      "constructor": {
+        "notice": "Creates a Vault configuration module."
+      },
+      "doesRoleHaveCapability(uint8,bytes4)": {
+        "notice": "Gets whether a role has a specific capability."
+      },
+      "doesUserHaveRole(address,uint8)": {
+        "notice": "Gets whether a user has a specific role."
+      },
+      "getRoleCapabilities(bytes4)": {
+        "notice": "Maps function signatures to a set of all roles that can call the given function."
+      },
+      "getTargetCustomAuthority(address)": {
+        "notice": "Maps targets to a custom Authority to use for authorization."
+      },
+      "getUserRoles(address)": {
+        "notice": "Maps users to a bytes32 set of all the roles assigned to them."
+      },
+      "isCapabilityPublic(bytes4)": {
+        "notice": "Maps function signatures to a boolean indicating whether anyone can call the given function."
+      },
+      "setPublicCapability(bytes4,bool)": {
+        "notice": "Sets whether a capability is public or not."
+      },
+      "setRoleCapability(uint8,bytes4,bool)": {
+        "notice": "Sets a capability for a role."
+      },
+      "setTargetCustomAuthority(address,address)": {
+        "notice": "Sets a custom Authority for a target."
+      },
+      "setUserRole(address,uint8,bool)": {
+        "notice": "Assigns a role to a user."
+      }
+    },
+    "notice": "Module for managing access to secured Vault operations.",
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 9760,
+        "contract": "src/vault/modules/VaultAuthorityModule.sol:VaultAuthorityModule",
+        "label": "owner",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_address"
+      },
+      {
+        "astId": 9763,
+        "contract": "src/vault/modules/VaultAuthorityModule.sol:VaultAuthorityModule",
+        "label": "authority",
+        "offset": 0,
+        "slot": "1",
+        "type": "t_contract(Authority)9748"
+      },
+      {
+        "astId": 9900,
+        "contract": "src/vault/modules/VaultAuthorityModule.sol:VaultAuthorityModule",
+        "label": "isTrusted",
+        "offset": 0,
+        "slot": "2",
+        "type": "t_mapping(t_address,t_bool)"
+      },
+      {
+        "astId": 17906,
+        "contract": "src/vault/modules/VaultAuthorityModule.sol:VaultAuthorityModule",
+        "label": "getTargetCustomAuthority",
+        "offset": 0,
+        "slot": "3",
+        "type": "t_mapping(t_address,t_contract(Authority)9748)"
+      },
+      {
+        "astId": 17911,
+        "contract": "src/vault/modules/VaultAuthorityModule.sol:VaultAuthorityModule",
+        "label": "getUserRoles",
+        "offset": 0,
+        "slot": "4",
+        "type": "t_mapping(t_address,t_bytes32)"
+      },
+      {
+        "astId": 17957,
+        "contract": "src/vault/modules/VaultAuthorityModule.sol:VaultAuthorityModule",
+        "label": "getRoleCapabilities",
+        "offset": 0,
+        "slot": "5",
+        "type": "t_mapping(t_bytes4,t_bytes32)"
+      },
+      {
+        "astId": 17962,
+        "contract": "src/vault/modules/VaultAuthorityModule.sol:VaultAuthorityModule",
+        "label": "isCapabilityPublic",
+        "offset": 0,
+        "slot": "6",
+        "type": "t_mapping(t_bytes4,t_bool)"
+      }
+    ],
+    "types": {
+      "t_address": {
+        "encoding": "inplace",
+        "label": "address",
+        "numberOfBytes": "20"
+      },
+      "t_bool": {
+        "encoding": "inplace",
+        "label": "bool",
+        "numberOfBytes": "1"
+      },
+      "t_bytes32": {
+        "encoding": "inplace",
+        "label": "bytes32",
+        "numberOfBytes": "32"
+      },
+      "t_bytes4": {
+        "encoding": "inplace",
+        "label": "bytes4",
+        "numberOfBytes": "4"
+      },
+      "t_contract(Authority)9748": {
+        "encoding": "inplace",
+        "label": "contract Authority",
+        "numberOfBytes": "20"
+      },
+      "t_mapping(t_address,t_bool)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => bool)",
+        "numberOfBytes": "32",
+        "value": "t_bool"
+      },
+      "t_mapping(t_address,t_bytes32)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => bytes32)",
+        "numberOfBytes": "32",
+        "value": "t_bytes32"
+      },
+      "t_mapping(t_address,t_contract(Authority)9748)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => contract Authority)",
+        "numberOfBytes": "32",
+        "value": "t_contract(Authority)9748"
+      },
+      "t_mapping(t_bytes4,t_bool)": {
+        "encoding": "mapping",
+        "key": "t_bytes4",
+        "label": "mapping(bytes4 => bool)",
+        "numberOfBytes": "32",
+        "value": "t_bool"
+      },
+      "t_mapping(t_bytes4,t_bytes32)": {
+        "encoding": "mapping",
+        "key": "t_bytes4",
+        "label": "mapping(bytes4 => bytes32)",
+        "numberOfBytes": "32",
+        "value": "t_bytes32"
+      }
+    }
+  }
+}
