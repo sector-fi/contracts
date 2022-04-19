@@ -1,5 +1,34 @@
 # Scion Contracts
 
+## Running Tests
+
+install deps
+```
+yarn
+```
+
+hardhat integration tests:
+```
+yarn test
+```
+
+foundry forge tests:
+```
+yarn test:forge
+```
+
+## Coverage
+
+hardhat integration coverage:
+```
+yarn cover // alias for npx hardhat coverage
+```
+
+limited forge test coverage can be done using dapptools:
+```
+yarn coverage <Contract.sol>
+```
+
 ## Strategies
 
 ### BaseStrategy
