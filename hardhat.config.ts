@@ -12,6 +12,7 @@ env.config({ path: path.join(__dirname, '.env') })
 
 const {
   DEPLOYER_KEY,
+  MANAGER_KEY,
   INFURA_API_KEY,
   COIN_MARKET_CAP_API,
   SHOW_GAS,
@@ -21,6 +22,8 @@ const {
   TEAM_1,
   TIMELOCK_ADMIN,
 } = process.env
+
+const keys = [DEPLOYER_KEY, MANAGER_KEY].filter((k) => k != null)
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
@@ -64,32 +67,57 @@ export default {
       chainId: 1337,
       tags: [FORK_CHAIN],
       allowUnlimitedContractSize: true,
-      // companionNetworks: {
-      //   fork: FORK_CHAIN,
-      // },
+      chains: {
+        43114: {
+          hardforkHistory: {
+            arrowGlacier: 0,
+          },
+        },
+        250: {
+          hardforkHistory: {
+            arrowGlacier: 0,
+          },
+        },
+      },
+    },
+    localhost: {
+      accounts: keys.length ? keys : undefined,
+      tags: [FORK_CHAIN],
     },
     fantom: {
       url: 'https://rpc.ftm.tools/',
-      gasPrice: 250e9,
+      gasPrice: 285e9,
       chainId: 250,
-      accounts: DEPLOYER_KEY ? [DEPLOYER_KEY] : undefined,
+      accounts: keys.length ? keys : undefined,
       tags: ['fantom'],
+      verify: {
+        etherscan: {
+          apiUrl: 'https://api.ftmscan.com/',
+        },
+      },
     },
     avalanche: {
       url: 'https://api.avax.network/ext/bc/C/rpc',
-      gasPrice: 39e9,
+      gasPrice: 27e9,
       chainId: 43114,
-      accounts: DEPLOYER_KEY ? [DEPLOYER_KEY] : undefined,
+      accounts: keys.length ? keys : undefined,
       tags: ['avalanche'],
+      verify: {
+        etherscan: {
+          apiUrl: 'https://api.snowtrace.io/',
+        },
+      },
     },
-    rinkeby: {
-      url: 'https://rinkeby.infura.io/v3/' + INFURA_API_KEY,
-      accounts: DEPLOYER_KEY ? [DEPLOYER_KEY] : undefined,
-      chainId: 4,
-      gasPrice: 3.1e9,
+    moonriver: {
+      url: 'https://rpc.api.moonriver.moonbeam.network',
+      accounts: keys.length ? keys : undefined,
+      chainId: 1285,
+      gasPrice: 1.1e9,
+      name: 'moonriver',
+      tags: ['moonriver'],
     },
     mainnet: {
-      accounts: DEPLOYER_KEY ? [DEPLOYER_KEY] : undefined,
+      accounts: keys.length ? keys : undefined,
       url: 'https://mainnet.infura.io/v3/' + INFURA_API_KEY,
       gasPrice: 2.1e9,
       chainId: 1,
