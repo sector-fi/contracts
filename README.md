@@ -7,6 +7,13 @@ install deps
 yarn
 ```
 
+init submodules
+```
+git submodule update --init --recursive
+```
+
+install [foundry](https://github.com/foundry-rs/foundry) 
+
 hardhat integration tests:
 ```
 yarn test
@@ -25,6 +32,8 @@ yarn cover // alias for npx hardhat coverage
 ```
 
 limited forge test coverage can be done using dapptools:
+
+install [dapptools](https://github.com/dapphub/dapptools#installation)
 ```
 yarn coverage <Contract.sol>
 ```
