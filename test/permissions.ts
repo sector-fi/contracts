@@ -18,8 +18,6 @@ import { getUniAddr } from '@sc1/common/utils/address';
 import { IChain } from '@sc1/common';
 import { getHarvestParams, strategies, IStrat } from '@sc1/common/strategies';
 
-Error.stackTraceLimit = Infinity;
-
 const { getSigner, utils } = ethers;
 const { parseUnits, formatUnits } = utils;
 

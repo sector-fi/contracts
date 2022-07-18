@@ -23,8 +23,6 @@ abstract contract BaseStrategy is Strategy, Ownable, ReentrancyGuard {
 		_;
 	}
 
-	bool isInitialized;
-
 	uint256 constant BPS_ADJUST = 10000;
 	uint256 public lastHarvest; // block.timestamp;
 	address private _vault;
@@ -127,7 +125,8 @@ abstract contract BaseStrategy is Strategy, Ownable, ReentrancyGuard {
 			uint256 balance = token.balanceOf(address(this));
 			if (balance != 0) token.safeTransfer(recipient, balance);
 		}
-		if (address(this).balance > 0) SafeETH.safeTransferETH(msg.sender, address(this).balance);
+		// send ETH to vault (no reason it should go to recipient / owner)
+		if (address(this).balance > 0) SafeETH.safeTransferETH(vault(), address(this).balance);
 		emit EmergencyWithdraw(recipient, tokens);
 	}
 

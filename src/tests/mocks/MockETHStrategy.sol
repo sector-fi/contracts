@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity >=0.8.0;
 
-import { ERC20Dec as ERC20 } from "../../tokens/ERC20Dec.sol";
+import { MockERC20 as ERC20 } from "./MockERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { FixedPointMathLib } from "../../libraries/FixedPointMathLib.sol";
 import "../../libraries/SafeETH.sol";

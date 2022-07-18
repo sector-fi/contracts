@@ -16,7 +16,9 @@ const func: DeployFunction = async function ({
   const { deployer } = await getNamedAccounts();
 
   for (let i = 0; i < strategies.length; i++) {
-    const mocks = strategies[i].mocks;
+    const strat = strategies[i];
+    if (!('mocks' in strat)) return;
+    const mocks = strat.mocks;
     await deploy('MockV3Aggregator', {
       from: deployer,
       log: true,

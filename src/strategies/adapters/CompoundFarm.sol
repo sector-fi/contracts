@@ -3,8 +3,8 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import "../../mixins/ICompound.sol";
-import "../../mixins/IFarmable.sol";
+import "../mixins/ICompound.sol";
+import "../mixins/IFarmable.sol";
 import "../../interfaces/uniswap/IUniswapV2Pair.sol";
 
 // import "hardhat/console.sol";

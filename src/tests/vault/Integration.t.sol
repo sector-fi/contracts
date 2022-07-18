@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity >=0.8.0;
 
-import { DSTestPlus } from "../utils/DSTestPlus.sol";
+import { ScionTest } from "../utils/ScionTest.sol";
 import { MockERC20 } from "../mocks/MockERC20.sol";
 
 import { MockERC20Strategy } from "../mocks/MockERC20Strategy.sol";
@@ -12,7 +12,7 @@ import { VaultUpgradable as Vault } from "../../vault/VaultUpgradable.sol";
 import { ScionVaultFactory as VaultFactory } from "../../vault/ScionVaultFactory.sol";
 import { UpgradeableBeacon } from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 
-contract IntegrationTest is DSTestPlus {
+contract IntegrationTest is ScionTest {
 	MockERC20 underlying;
 	Vault vault;
 
@@ -47,10 +47,6 @@ contract IntegrationTest is DSTestPlus {
 	}
 
 	function testIntegration() public {
-		// TODO init & test user roles
-
-		// TEST setting configs
-
 		underlying.mint(address(this), 1.5e18);
 
 		underlying.approve(address(vault), 1e18);
@@ -76,7 +72,7 @@ contract IntegrationTest is DSTestPlus {
 		underlying.transfer(address(strategy2), 0.25e18);
 		vault.harvest(strategiesToHarvest);
 
-		hevm.warp(block.timestamp + vault.harvestDelay());
+		vm.warp(block.timestamp + vault.harvestDelay());
 
 		vault.withdraw(1363636363636363636);
 		assertEq(vault.balanceOf(address(this)), 0);

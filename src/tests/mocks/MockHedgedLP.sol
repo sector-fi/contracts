@@ -1,14 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../../mixins/ILending.sol";
-import "../../strategies/HedgedLP.sol";
+import "../../strategies/mixins/ILending.sol";
+import { HedgedLP } from "../../strategies/HedgedLP.sol";
+import { BaseStrategy } from "../../strategies/HedgedLP.sol";
+import { UniUtils } from "../../libraries/UniUtils.sol";
+import { MockLending } from "./MockLending.sol";
+import { MockFarm } from "./MockFarm.sol";
+import { MockPair } from "./MockPair.sol";
 
-import "../../libraries/UniUtils.sol";
-
-import "./MockLending.sol";
-import "./MockFarm.sol";
-import "./MockPair.sol";
+import { MockERC20 } from "../mocks/MockERC20.sol";
 
 contract MockHedgedLP is HedgedLP, MockLending, MockFarm {
 	constructor(

@@ -6,9 +6,22 @@ import 'tsconfig-paths/register'
 import 'hardhat-gas-reporter'
 import env from 'dotenv'
 import path from 'path'
+import { subtask } from 'hardhat/config'
+import { TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS } from 'hardhat/builtin-tasks/task-names'
+import '@nomiclabs/hardhat-etherscan'
+
+Error.stackTraceLimit = Infinity
+
+// This skips the test comilation
+subtask(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS).setAction(
+  async (_, __, runSuper) => {
+    const paths = await runSuper()
+    return paths.filter((p) => !p.includes('src/tests'))
+  },
+)
 
 // import 'hardhat-typechain'; // doesn't work rn
-env.config({ path: path.join(__dirname, '.env') })
+env.config()
 
 const {
   DEPLOYER_KEY,
@@ -21,6 +34,10 @@ const {
   FORK_CHAIN,
   TEAM_1,
   TIMELOCK_ADMIN,
+  SNOWTRACE_API_KEY,
+  FTM_API_KEY,
+  MOONRIVER_API_KEY,
+  MOONBEAM_API_KEY,
 } = process.env
 
 const keys = [DEPLOYER_KEY, MANAGER_KEY].filter((k) => k != null)
@@ -86,12 +103,13 @@ export default {
     },
     fantom: {
       url: 'https://rpc.ftm.tools/',
-      gasPrice: 285e9,
+      gasPrice: 700e9,
       chainId: 250,
       accounts: keys.length ? keys : undefined,
       tags: ['fantom'],
       verify: {
         etherscan: {
+          apiKey: FTM_API_KEY,
           apiUrl: 'https://api.ftmscan.com/',
         },
       },
@@ -104,6 +122,7 @@ export default {
       tags: ['avalanche'],
       verify: {
         etherscan: {
+          apiKey: SNOWTRACE_API_KEY,
           apiUrl: 'https://api.snowtrace.io/',
         },
       },
@@ -115,6 +134,25 @@ export default {
       gasPrice: 1.1e9,
       name: 'moonriver',
       tags: ['moonriver'],
+      verify: {
+        etherscan: {
+          apiKey: MOONRIVER_API_KEY,
+        },
+      },
+    },
+    moonbeam: {
+      url: 'https://rpc.api.moonbeam.network',
+      accounts: keys.length ? keys : undefined,
+      chainId: 1284,
+      gasPrice: 101e9,
+      name: 'moonbeam',
+      tags: ['moonbeam'],
+      verify: {
+        etherscan: {
+          apiKey: MOONBEAM_API_KEY,
+          apiUrl: 'https://api-moonbeam.moonscan.io',
+        },
+      },
     },
     mainnet: {
       accounts: keys.length ? keys : undefined,
@@ -150,9 +188,15 @@ export default {
   },
   paths: {
     sources: './src',
+    cache: './hh-cache',
   },
   typechain: {
     outDir: 'typechain',
     target: 'ethers-v5',
+  },
+  etherscan: {
+    apiKey: {
+      moonbeam: MOONBEAM_API_KEY,
+    },
   },
 }

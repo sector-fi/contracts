@@ -8,7 +8,7 @@ import { FixedPointMathLib } from "../../libraries/FixedPointMathLib.sol";
 
 import "../utils/UQ112x112.sol";
 
-import { ERC20Dec as ERC20 } from "../../tokens/ERC20Dec.sol";
+import { MockERC20 as ERC20 } from "./MockERC20.sol";
 
 import "hardhat/console.sol";
 

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../../mixins/ILending.sol";
-import "../../mixins/IBase.sol";
+import "../../strategies/mixins/ILending.sol";
+import "../../strategies/mixins/IBase.sol";
 import "../../interfaces/uniswap/IUniswapV2Pair.sol";
 import { MockERC20 } from "../mocks/MockERC20.sol";
 import { FixedPointMathLib } from "../../libraries/FixedPointMathLib.sol";
@@ -17,6 +17,7 @@ abstract contract MockLending is ILending {
 	uint256 public lendAmount = 0;
 	uint256 exchangeRate;
 	uint256 maxBorrow = 2 * uint256(type(uint128).max);
+	uint256 constant COLLATERAL_FACTOR = .6e18;
 
 	function __MockLending_(uint256 startExchangeRate) internal initializer {
 		exchangeRate = startExchangeRate;
@@ -59,7 +60,7 @@ abstract contract MockLending is ILending {
 	}
 
 	function _getCollateralFactor() internal view virtual override(ILending) returns (uint256) {
-		return 0.8e18;
+		return COLLATERAL_FACTOR;
 	}
 
 	function _getCollateralBalance() internal view virtual override returns (uint256) {

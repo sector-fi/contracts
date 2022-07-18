@@ -6,8 +6,8 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { IMasterChef } from "../../interfaces/uniswap/IStakingRewards.sol";
 import "../../interfaces/uniswap/IUniswapV2Pair.sol";
 
-import "../../mixins/IFarmableLp.sol";
-import "../../mixins/IUniLp.sol";
+import "../mixins/IFarmableLp.sol";
+import "../mixins/IUniLp.sol";
 import "../../interfaces/uniswap/IWETH.sol";
 
 // import "hardhat/console.sol";
@@ -63,6 +63,9 @@ abstract contract MasterChefFarm is IFarmableLp, IUniLp {
 		override
 		returns (uint256[] memory harvested)
 	{
+		address[] memory addresses;
+		uint256[] memory amounts;
+
 		_farm.deposit(_farmId, 0);
 		harvested = new uint256[](1);
 		harvested[0] = _farmToken.balanceOf(address(this));
@@ -71,10 +74,11 @@ abstract contract MasterChefFarm is IFarmableLp, IUniLp {
 		_swap(_router, swapParams[0], address(_farmToken), harvested[0]);
 		emit HarvestedToken(address(_farmToken), harvested[0]);
 
-		uint256 avaxBalance = address(this).balance;
-		if (avaxBalance > 0) {
-			IWETH(address(short())).deposit{ value: avaxBalance }();
-			emit HarvestedToken(address(short()), avaxBalance);
+		// additional chain token rewards
+		uint256 ethBalance = address(this).balance;
+		if (ethBalance > 0) {
+			IWETH(address(short())).deposit{ value: ethBalance }();
+			emit HarvestedToken(address(short()), ethBalance);
 		}
 	}
 

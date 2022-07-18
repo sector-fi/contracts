@@ -6,7 +6,7 @@ import "../../interfaces/compound/IComptroller.sol";
 import "../../interfaces/compound/ICompPriceOracle.sol";
 import "../../interfaces/compound/IComptroller.sol";
 
-import "../../mixins/ICompound.sol";
+import "../mixins/ICompound.sol";
 
 // import "hardhat/console.sol";
 

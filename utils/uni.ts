@@ -1,10 +1,17 @@
 import { ethers } from 'hardhat';
 
-import { getAddr, ISwap, IChain, getRouterContract } from '@sc1/common/utils';
+import {
+  getAddr,
+  ISwap,
+  IChain,
+  getRouterContract,
+  routerMethod,
+} from '@sc1/common/utils';
 import { BigNumber, Contract } from 'ethers';
 
 import { deadline } from './hedgeHelpers';
 import { Address } from 'hardhat-deploy/dist/types';
+import { buyUnderlying as buyUnderlyingSolidly } from './solidly';
 
 const { utils } = ethers;
 const { parseUnits } = utils;
@@ -22,6 +29,8 @@ export const buyUnderlying = async (
   swap: ISwap,
   chain: IChain
 ): Promise<void> => {
+  if (swap === 'solidly')
+    return buyUnderlyingSolidly(to, underlying, exchangeFor, amnt, swap, chain);
   const signer = await ethers.getSigner(to);
   const uniRouter = getRouterContract(swap, signer);
   const base = getAddr('BASE', chain);
@@ -67,37 +76,4 @@ export const sellUnderlying = async (
     deadline()
   );
   await tx.wait();
-};
-
-export const addLP = async (
-  token0: string,
-  token1: string,
-  amountA: BigNumber,
-  amountB: BigNumber,
-  address: string,
-  swap: ISwap
-): Promise<void> => {
-  const signer = await ethers.getSigner(address);
-  const uniRouter = getRouterContract(swap, signer);
-  const tx = await uniRouter.addLiquidity(
-    token0,
-    token1,
-    amountA,
-    amountB,
-    amountA,
-    0,
-    address,
-    deadline()
-  );
-  await tx.wait();
-};
-
-export const routerMethod = (method: string, swap: ISwap): string => {
-  switch (swap) {
-    case 'pangolin':
-    case 'traderJoe':
-      return method.replace('ETH', 'AVAX');
-    default:
-      return method;
-  }
 };

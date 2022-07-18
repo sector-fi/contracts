@@ -54,12 +54,12 @@ redis.client.HSET = util.promisify(redis.client.HSET).bind(redis.client);
 export const mockServer = async (chain: IChain) => {
   const stratDataPromises = strategies
     .filter((s) => s.chain === chain)
-    .reverse() // reverce to test withdrawalQueue reorder
+    .reverse() // reverse to test withdrawalQueue reorder
     .map(async (s, i) => ({
       id: (await ethers.getContract(s.symbol)).address,
       symbol: s.symbol,
       aprThreeDay: i.toString(),
-      tvl: '0',
+      tvl: i.toString(),
       maxTvl: MaxUint256,
       lastHarvest: '1646816484',
       lastRebalance: '1646684322',

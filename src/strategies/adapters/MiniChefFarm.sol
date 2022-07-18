@@ -6,8 +6,8 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { IMiniChefV2 } from "../../interfaces/uniswap/IStakingRewards.sol";
 import "../../interfaces/uniswap/IUniswapV2Pair.sol";
 
-import "../../mixins/IFarmableLp.sol";
-import "../../mixins/IUniLp.sol";
+import "../mixins/IFarmableLp.sol";
+import "../mixins/IUniLp.sol";
 
 // import "hardhat/console.sol";
 

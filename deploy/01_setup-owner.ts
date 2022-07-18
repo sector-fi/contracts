@@ -16,7 +16,7 @@ const func: DeployFunction = async function ({
   await updateOwner(vaultFactory, deployer);
 
   // set owner of contracts to curren DEPLOYER addrs
-  const vault = await ethers.getContract('USDC-Vault-0.1', deployer);
+  const vault = await ethers.getContract('USDC-Vault-0.2', deployer);
   await updateOwner(vault, deployer);
   const isManager = await vault.isManager(manager);
 
@@ -25,6 +25,7 @@ const func: DeployFunction = async function ({
 
   for (let i = 0; i < strategies.length; i++) {
     const strat = strategies[i];
+    if (strat.skip) continue;
     if (!network.tags[strat.chain]) continue;
     const strategy = await ethers.getContract(strat.symbol, deployer);
     await updateOwner(strategy, deployer);

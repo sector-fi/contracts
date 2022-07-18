@@ -1,5 +1,5 @@
-import { assert, expect } from 'chai'
-import { ethers, getNamedAccounts, deployments, network } from 'hardhat'
+import { assert, expect } from "chai";
+import { ethers, getNamedAccounts, deployments, network } from "hardhat";
 import {
   forkNetwork,
   approve,
@@ -14,9 +14,9 @@ import {
   getVault,
   chain,
   forkBlock,
-} from '../utils'
-import { getUniAddr } from '@sc1/common/utils/address'
-import { IChain, strategies } from '@sc1/common'
+} from "../utils";
+import { getUniAddr } from "@sc1/common/utils/address";
+import { IChain, strategies } from "@sc1/common";
 
 // this test demonstrates an (expensive) sandwitch attack on the Vault:
 // attacker is able to use large capital + sandwitch attack to decrease the value of an underlying strategyy
@@ -33,49 +33,55 @@ import { IChain, strategies } from '@sc1/common'
 // so, for example access to $18.5M in capital will result in $263K in profit (1.85% of 10M + 4.2M from the AVAX sale)
 // with flashbots this attack is riskless and can be performed on every single harvest
 
-const { getSigner, utils } = ethers
-const { parseUnits, formatUnits } = utils
+const { getSigner, utils } = ethers;
+const { parseUnits, formatUnits } = utils;
 
-const DEPOSIT_AMT = '100'
+const DEPOSIT_AMT = "100";
+
+enum PnlLock {
+  None = 0,
+  Deposit = 1,
+  Withdraw = 2,
+}
 
 const setupTest = deployments.createFixture(async (_, strat: any) => {
-  await deployments.fixture(['Timelock', 'DevOwner', 'Mocks', 'TimelockStrat'])
-  await setMiningInterval(0)
-  const { deployer, manager, addr1 } = await getNamedAccounts()
+  await deployments.fixture(["Timelock", "DevOwner", "Mocks", "TimelockStrat"]);
+  await setMiningInterval(0);
+  const { deployer, manager, addr1 } = await getNamedAccounts();
 
-  const vault = await getVault()
+  const vault = await getVault(undefined, "0.2");
 
-  await vault.bulkAllow([addr1])
+  await vault.bulkAllow([addr1]);
   // await vault.setFeePercent(0)
-  await setupAccount(deployer)
+  await setupAccount(deployer);
 
-  await fundAccount(addr1, '1000000000')
-  await fundAccount(deployer, '1000000000')
-  await approve(strat.underlying, deployer, vault.address)
-  await approve(strat.underlying, addr1, vault.address)
+  await fundAccount(addr1, "1000000000");
+  await fundAccount(deployer, "1000000000");
+  await approve(strat.underlying, deployer, vault.address);
+  await approve(strat.underlying, addr1, vault.address);
 
-  const router = getUniAddr('UNISWAP_ROUTER', strat.swap)
-  await approve(strat.underlying, deployer, router)
-  await approve(strat.underlying, addr1, router)
+  const router = getUniAddr("UNISWAP_ROUTER", strat.swap);
+  await approve(strat.underlying, deployer, router);
+  await approve(strat.underlying, addr1, router);
 
-  await mockChainlink(strat)
+  await mockChainlink(strat);
 
-  const strategy = await ethers.getContract(strat.symbol, deployer)
+  const strategy = await ethers.getContract(strat.symbol, deployer);
 
-  await disableBandFeed(strat)
-  const dec = await strategy.decimals()
+  await disableBandFeed(strat);
+  const dec = await strategy.decimals();
 
   await buyUnderlying(
     addr1,
     strat.underlying,
     strat.short,
-    parseUnits('200', 6),
+    parseUnits("200", 6),
     strat.swap,
-    strat.chain,
-  )
+    strat.chain
+  );
 
-  return { vault, strategy, dec }
-})
+  return { vault, strategy, dec };
+});
 
 // runs tests for all strategies
 strategies
@@ -83,100 +89,100 @@ strategies
   // .filter((s) => s.symbol === 'USDCavaxPNGqi')
   .forEach((strat) => {
     describe(strat.symbol, function () {
-      this.timeout(80000) // fantom is slow
+      this.timeout(80000); // fantom is slow
 
-      let owner
-      let managerSig
-      let vault
-      let strategy
-      let dec
-      let hacker
-      let baseUnits
+      let owner;
+      let managerSig;
+      let vault;
+      let strategy;
+      let dec;
+      let hacker;
+      let baseUnits;
 
       before(async () => {
-        await forkNetwork(chain as IChain, forkBlock[chain])
-        await setMiningInterval(0)
-        const { deployer, manager, addr1 } = await getNamedAccounts()
-        owner = deployer
-        managerSig = await getSigner(manager)
-        hacker = await getSigner(addr1)
-      })
+        await forkNetwork(chain as IChain, forkBlock[chain]);
+        await setMiningInterval(0);
+        const { deployer, manager, addr1 } = await getNamedAccounts();
+        owner = deployer;
+        managerSig = await getSigner(manager);
+        hacker = await getSigner(addr1);
+      });
 
-      describe('attack', async () => {
+      describe("attack", async () => {
         before(async () => {
-          ;({ vault, strategy, dec } = await setupTest(strat))
-          baseUnits = await vault.BASE_UNIT()
-        })
+          ({ vault, strategy, dec } = await setupTest(strat));
+          baseUnits = await vault.BASE_UNIT();
+        });
 
-        it('regular users deposit funds', async function () {
-          const amountUsd = parseUnits(DEPOSIT_AMT, dec)
-          await vault.deposit(amountUsd)
+        it("regular users deposit funds", async function () {
+          const amountUsd = parseUnits(DEPOSIT_AMT, dec);
+          await vault.deposit(amountUsd);
           await vault
             .connect(managerSig)
-            .depositIntoStrategy(strategy.address, amountUsd)
-          const price = await vault.exchangeRate()
-          console.log('start price', formatUnits(price, dec))
-          expect(price).to.be.closeTo(baseUnits, 10 ** (dec / 2))
-          await getTvl(strategy)
-        })
+            .depositIntoStrategy(strategy.address, amountUsd);
+          const price = await vault.exchangeRateLock(PnlLock.Deposit);
+          console.log("start price", formatUnits(price, dec));
+          expect(price).to.be.closeTo(baseUnits, 10 ** (dec / 2));
+          await getTvl(strategy);
+        });
 
-        it('attack - sandwitch harvest start', async function () {
-          await movePriceBy(0.5, strat, owner, strategy, true)
-          const price = await vault.exchangeRate()
-          console.log('price', formatUnits(price, dec))
-          expect(price).to.be.closeTo(baseUnits, 10 ** (dec / 2))
-          await getTvl(strategy)
-        })
+        it("attack - sandwitch harvest start", async function () {
+          await movePriceBy(0.5, strat, owner, strategy, true);
+          const price = await vault.exchangeRateLock(PnlLock.Deposit);
+          console.log("price", formatUnits(price, dec));
+          expect(price).to.be.closeTo(baseUnits, 10 ** (dec / 2));
+          await getTvl(strategy);
+        });
 
-        it('harvest', async function () {
-          await vault.connect(managerSig).harvest([strategy.address])
-          const price = await vault.exchangeRate()
+        it("harvest", async function () {
+          await vault.connect(managerSig).harvest([strategy.address]);
+          const price = await vault.exchangeRateLock(PnlLock.Deposit);
           // here the price is decreased (but deposits should not be impacted)
           // expect(price).to.be.lt(baseUnits);
-          console.log('price', formatUnits(price, dec))
-          await getTvl(strategy)
-        })
+          console.log("price", formatUnits(price, dec));
+          await getTvl(strategy);
+        });
 
-        it('attack - harvest sandwitch end', async function () {
-          const amount = parseUnits(DEPOSIT_AMT, dec)
-          await vault.connect(hacker).deposit(amount)
-          await movePriceBy(2, strat, owner, strategy, true)
+        it("attack - harvest sandwitch end", async function () {
+          const amount = parseUnits(DEPOSIT_AMT, dec);
+          await vault.connect(hacker).deposit(amount);
+          await movePriceBy(2, strat, owner, strategy, true);
           // here price is till depressed (waiting for harvest)
-          const price = await vault.exchangeRate()
-          console.log('price', formatUnits(price, dec))
+          const price = await vault.exchangeRateLock(PnlLock.Deposit);
+          console.log("price", formatUnits(price, dec));
           // expect(price).to.be.lt(baseUnits);
+          expect(price).to.be.closeTo(baseUnits, 10 ** (dec / 2));
+        });
+
+        it("wait until next harvest", async function () {
+          await vault.connect(managerSig).harvest([strategy.address]);
+          await network.provider.send("evm_increaseTime", [6 * 60 * 60]);
+          await network.provider.send("evm_mine");
+          const price = await vault.exchangeRateLock(PnlLock.Deposit);
+          console.log("price", formatUnits(price, dec));
+          await getTvl(strategy);
           // expect(price).to.be.closeTo(baseUnits, 10 ** (dec / 2));
-        })
+        });
 
-        it('wait until next harvest', async function () {
-          await vault.connect(managerSig).harvest([strategy.address])
-          await network.provider.send('evm_increaseTime', [6 * 60 * 60])
-          await network.provider.send('evm_mine')
-          const price = await vault.exchangeRate()
-          console.log('price', formatUnits(price, dec))
-          await getTvl(strategy)
-          expect(price).to.be.closeTo(baseUnits, 10 ** (dec / 2))
-        })
+        it("attacker share value should not be inflated", async function () {
+          const shareBalanceHacker = await vault.balanceOf(hacker.address);
+          const shareBalanceOwner = await vault.balanceOf(owner);
+          const totalSupply = await vault.totalSupply();
+          const tvl = await vault.totalHoldings();
 
-        it('attacker share value should not be inflated', async function () {
-          const shareBalanceHacker = await vault.balanceOf(hacker.address)
-          const shareBalanceOwner = await vault.balanceOf(owner)
-          const totalSupply = await vault.totalSupply()
-          const tvl = await vault.totalHoldings()
+          console.log("supply", formatUnits(totalSupply, dec));
+          console.log("tvl", formatUnits(tvl, dec));
 
-          console.log('supply', formatUnits(totalSupply, dec))
-          console.log('tvl', formatUnits(tvl, dec))
+          const price = await vault.exchangeRateLock(PnlLock.Deposit);
+          console.log("price", formatUnits(price, dec));
 
-          const price = await vault.exchangeRate()
-          console.log('price', formatUnits(price, dec))
+          const hackerBalance = shareBalanceHacker.mul(price).div(baseUnits);
+          const ownerBalance = shareBalanceOwner.mul(price).div(baseUnits);
+          console.log("hacker balance", formatUnits(hackerBalance, dec));
+          console.log("owner balance", formatUnits(ownerBalance, dec));
 
-          const hackerBalance = shareBalanceHacker.mul(price).div(baseUnits)
-          const ownerBalance = shareBalanceOwner.mul(price).div(baseUnits)
-          console.log('hacker balance', formatUnits(hackerBalance, dec))
-          console.log('owner balance', formatUnits(ownerBalance, dec))
-
-          expect(hackerBalance).to.be.closeTo(ownerBalance, 10 ** (dec / 2))
-        })
-      })
-    })
-  })
+          expect(hackerBalance).to.be.closeTo(ownerBalance, 10 ** (dec / 2));
+        });
+      });
+    });
+  });
