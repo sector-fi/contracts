@@ -82,13 +82,21 @@ The strategy manager is also responsible for harvesting the LP farm. This is don
 
 A public `rebalanceLoan` method is available for anyone to call if the loan position gets close to liquidation. This will enable an external `keeper` network like Gelato to ensure the safty of the position.
 
-### Security: Swaps & sandwitch/flashloan attacks:
+### Mixins
 
-#### underlying/short swaps
+`HedgedLP` uses abstract mixins to interact with lending and dex protocols. These mixina are agnostic to the concrete implementation of the protocol.
+
+### Adapters
+
+Adapters are contrete implementations of the lending and dex mixins for specific protocols.
+
+## Security: Swaps & sandwitch/flashloan attacks:
+
+### Underlying <-> Short Swaps
 
 `underlying/short` swaps that happen as part of `deposit`, `withdraw`, `rebalance` and `closePosition` are protected against flash-swap attacks by the `checkPrice` modifier. This modifier queries the prices via the oracle used by the lending protocol (usually chainlink) and checks them against the current dex spot price.
 
-#### vault attacks
+### Vault Attacks
 
 VaultUpgradable.sol implements `LockedProfit` (like in yearn vaults) and additionally `LockedLoss`. This prevents a flashwap or sandwich attack where an attacker may potentially manipulate the value of one of the strategies to either inflate or deflate the price of shares.
 
@@ -97,17 +105,9 @@ VaultUpgradable.sol implements `LockedProfit` (like in yearn vaults) and additio
 - https://github.com/Rari-Capital/vaults/blob/main/audits/yAcademy/Dhurv.Kat.Amanusk.pdf
 - https://github.com/Rari-Capital/vaults/blob/main/audits/yAcademy/Nibbler.Bebis.Zokunei.Carl.pdf
 
-#### harvest swaps
+### Harvest swaps
 
 Swaps necessary as part of harvest operations take a `min` output amount computed externally.
-
-### Mixins
-
-`HedgedLP` uses abstract mixins to interact with lending and dex protocols. These mixina are agnostic to the concrete implementation of the protocol.
-
-### Adapters
-
-Adapters are contrete implementations of the lending and dex mixins for specific protocols.
 
 ## Permissions Architecture
 
