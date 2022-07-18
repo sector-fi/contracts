@@ -352,8 +352,8 @@
       ]
     },
     "/Users/slavab/local/scion-contracts/src/vault/VaultUpgradable.sol": {
-      "lastModificationDate": 1657926266564,
-      "contentHash": "16a571d7c2890995dc7335932924fa5b",
+      "lastModificationDate": 1657929122796,
+      "contentHash": "20ecd12bc3d4941f900f3b95aa308f4c",
       "sourceName": "src/vault/VaultUpgradable.sol",
       "solcConfig": {
         "version": "0.8.10",
@@ -394,7 +394,6 @@
         "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol",
         "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol",
         "../interfaces/uniswap/IWETH.sol",
-        "hardhat/console.sol",
         "../interfaces/Strategy.sol"
       ],
       "versionPragmas": [
@@ -753,7 +752,7 @@
       ]
     },
     "/Users/slavab/local/scion-contracts/src/interfaces/Strategy.sol": {
-      "lastModificationDate": 1657929049849,
+      "lastModificationDate": 1657929085084,
       "contentHash": "3943628408ac6091cb889fca49388452",
       "sourceName": "src/interfaces/Strategy.sol",
       "solcConfig": {
