@@ -16,6 +16,13 @@ cache
 artifacts
 out
 
+# local contracts
+/packages/contracts/deployments/localhost/* 
+/packages/contracts/deployments/hardhat/*
+# except chainId
+!/packages/contracts/deployments/localhost/.chainId
+!/packages/contracts/deployments/hardhat/.chainId
+
 # ZeppelinOS
 .openzeppelin/dev-*.json
 
