@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-pragma solidity >=0.8.0;
+pragma solidity 0.8.16;
 
 import { VaultTest } from "./Vault.t.sol";
 import { Strategy } from "../../interfaces/Strategy.sol";

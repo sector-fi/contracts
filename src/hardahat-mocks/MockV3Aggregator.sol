@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity 0.8.16;
 
 import { AggregatorV2V3Interface } from "../interfaces/chainlink/AggregatorV2V3Interface.sol";
 
@@ -16,7 +16,7 @@ contract MockV3Aggregator is AggregatorV2V3Interface {
 
 	uint8 public override decimals;
 	int256 public override latestAnswer;
-	  uint256 public override latestTimestamp;
+	uint256 public override latestTimestamp;
 	uint256 public override latestRound;
 
 	mapping(uint256 => int256) public override getAnswer;

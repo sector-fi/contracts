@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity 0.8.16;
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
@@ -111,7 +111,7 @@ abstract contract IMX is IBase, BaseStrategy, IIMXFarm, IUniLp {
 	}
 
 	// manager can adjust max price if needed
-	function setMaxPriceMismatch(uint256 maxPriceMismatch_) public onlyAuth {
+	function setMaxPriceMismatch(uint256 maxPriceMismatch_) public onlyGuardian {
 		require(msg.sender == owner() || maxAllowedMismatch >= maxPriceMismatch_, "HLP: TOO LARGE");
 		maxPriceMismatch = maxPriceMismatch_;
 		emit SetMaxPriceMismatch(maxPriceMismatch_);
@@ -122,7 +122,7 @@ abstract contract IMX is IBase, BaseStrategy, IIMXFarm, IUniLp {
 		emit SetRebalanceThreshold(rebalanceThreshold_);
 	}
 
-	function setMaxTvl(uint256 maxTvl_) public onlyAuth {
+	function setMaxTvl(uint256 maxTvl_) public onlyGuardian {
 		_maxTvl = maxTvl_;
 		emit SetMaxTvl(maxTvl_);
 	}
@@ -170,7 +170,6 @@ abstract contract IMX is IBase, BaseStrategy, IIMXFarm, IUniLp {
 		newShares = totalSupply() == 0 ? amount : (totalSupply() * amount) / tvl;
 		_underlying.transferFrom(vault(), address(this), amount);
 		_increasePosition(amount);
-		emit Deposit(msg.sender, amount);
 	}
 
 	// can pass type(uint256).max to withdraw full amount
@@ -253,7 +252,7 @@ abstract contract IMX is IBase, BaseStrategy, IIMXFarm, IUniLp {
 		HarvestSwapParms[] calldata lendingParams
 	)
 		external
-		onlyAuth
+		onlyManager
 		checkPrice
 		nonReentrant
 		returns (uint256[] memory farmHarvest, uint256[] memory lendHarvest)
@@ -269,7 +268,7 @@ abstract contract IMX is IBase, BaseStrategy, IIMXFarm, IUniLp {
 
 	// MANAGER + OWNER METHODS
 
-	function rebalance() external onlyAuth checkPrice nonReentrant {
+	function rebalance() external onlyManager checkPrice nonReentrant {
 		// call this first to ensure we use an updated borrowBalance when computing offset
 		uint256 tvl = _getAndUpdateTVL();
 		uint256 positionOffset = getPositionOffset();
@@ -284,7 +283,7 @@ abstract contract IMX is IBase, BaseStrategy, IIMXFarm, IUniLp {
 		emit Rebalance(_shortToUnderlying(1e18), positionOffset, tvl);
 	}
 
-	function closePosition() public onlyAuth checkPrice returns (uint256) {
+	function closePosition() public onlyGuardian checkPrice returns (uint256) {
 		_removeAllLp();
 		return _sellShort();
 	}

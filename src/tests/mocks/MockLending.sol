@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity 0.8.16;
 
 import "../../strategies/mixins/ILending.sol";
 import "../../strategies/mixins/IBase.sol";

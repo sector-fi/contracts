@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // OpenZeppelin Contracts v4.4.1 (governance/TimelockController.sol)
 
-pragma solidity ^0.8.0;
+pragma solidity 0.8.16;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
@@ -360,6 +360,7 @@ contract ScionTimelock is AccessControl {
 	 */
 	function updateDelay(uint256 newDelay) external virtual {
 		require(msg.sender == address(this), "TimelockController: caller must be timelock");
+		require(newDelay < 30 days, "TimelockController: delay too large");
 		emit MinDelayChange(_minDelay, newDelay);
 		_minDelay = newDelay;
 	}
