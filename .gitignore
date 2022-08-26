@@ -18,11 +18,11 @@ artifacts
 out
 
 # local contracts
-/deployments/localhost/* 
-/deployments/hardhat/*
+deployments/localhost/* 
+deployments/hardhat/*
 # except chainId
-!/deployments/localhost/.chainId
-!/deployments/hardhat/.chainId
+!deployments/localhost/.chainId
+!deployments/hardhat/.chainId
 
 # ZeppelinOS
 .openzeppelin/dev-*.json
