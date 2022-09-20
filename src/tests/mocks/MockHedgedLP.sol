@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity 0.8.16;
 
 import "../../strategies/mixins/ILending.sol";
 import { HedgedLP } from "../../strategies/HedgedLP.sol";
@@ -21,6 +21,10 @@ contract MockHedgedLP is HedgedLP, MockLending, MockFarm {
 	) BaseStrategy(_vault, "MOCK", "MockHedgedLP") {
 		__MockFarm_(address(0x0), pair_);
 		__MockLending_(startExchangeRate);
+		__HedgedLP_init_(_underlying, _short, type(uint256).max);
+	}
+
+	function init(address _underlying, address _short) public {
 		__HedgedLP_init_(_underlying, _short, type(uint256).max);
 	}
 
