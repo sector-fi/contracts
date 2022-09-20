@@ -25,6 +25,8 @@ contract VaultUpgradable is Initializable, ERC20, OwnableUpgradeable, Reentrancy
 	using SafeERC20 for IERC20;
 	using FixedPointMathLib for uint256;
 
+	uint256 public constant MINIMUM_LIQUIDITY = 10**3;
+
 	/// security: marks implementation contract as initialized
 	/// @custom:oz-upgrades-unsafe-allow constructor
 	constructor() initializer {}
@@ -382,9 +384,15 @@ contract VaultUpgradable is Initializable, ERC20, OwnableUpgradeable, Reentrancy
 		// you should not be able to deposit funds over the tvl limit
 		require(underlyingAmount + totalHoldings() <= getMaxTvl(), "OVER_MAX_TVL");
 
+		bool isFirstDeposit = totalSupply() == 0;
+
 		// Determine the equivalent amount of rvTokens and mint them.
 		// use deposit lock here (add locked loss to inflate share price)
 		_mint(msg.sender, underlyingAmount.fdiv(exchangeRateLock(PnlLock.Deposit), BASE_UNIT));
+
+		// mint MINIMUM_LIQUIDITY if this is the first deposit and lock it
+		// using address(1) because erc20 implementation prevents using 0
+		if (isFirstDeposit) _mint(address(1), MINIMUM_LIQUIDITY);
 
 		emit Deposit(msg.sender, underlyingAmount);
 
@@ -475,7 +483,9 @@ contract VaultUpgradable is Initializable, ERC20, OwnableUpgradeable, Reentrancy
 		uint256 rvTokenSupply = totalSupply();
 
 		// If there are no rvTokens in circulation, return an exchange rate of 1:1.
-		if (rvTokenSupply == 0) return BASE_UNIT;
+		if (rvTokenSupply == 0) {
+			return BASE_UNIT + MINIMUM_LIQUIDITY;
+		}
 
 		// Calculate the exchange rate by dividing the total holdings by the rvToken supply.
 		return totalHoldingsLock(lock).fdiv(rvTokenSupply, BASE_UNIT);
