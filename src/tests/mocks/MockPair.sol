@@ -16,7 +16,7 @@ contract MockPair is ERC20 {
 	using SafeMath for uint256;
 	using UQ112x112 for uint224;
 
-	uint256 public constant MINIMUM_LIQUIDITY = 10**3;
+	uint256 public constant MIN_LIQUIDITY = 10**3;
 	bytes4 private constant SELECTOR = bytes4(keccak256(bytes("transfer(address,uint256)")));
 
 	address public factory;
@@ -89,8 +89,8 @@ contract MockPair is ERC20 {
 		uint256 amount1 = balance1.sub(_reserve1);
 		uint256 _totalSupply = totalSupply(); // not necessary without _mintFee but leaving in here
 		if (_totalSupply == 0) {
-			liquidity = FixedPointMathLib.sqrt(amount0.mul(amount1)).sub(MINIMUM_LIQUIDITY);
-			_mint(address(0xbeef), MINIMUM_LIQUIDITY); // permanently lock the first MINIMUM_LIQUIDITY tokens
+			liquidity = FixedPointMathLib.sqrt(amount0.mul(amount1)).sub(MIN_LIQUIDITY);
+			_mint(address(0xbeef), MIN_LIQUIDITY); // permanently lock the first MIN_LIQUIDITY tokens
 		} else {
 			liquidity = Math.min(
 				amount0.mul(_totalSupply) / _reserve0,

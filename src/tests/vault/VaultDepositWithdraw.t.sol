@@ -21,8 +21,8 @@ contract VaultDepositWithdrawTest is VaultTest {
 
 		assertEq(vault.exchangeRate(), 1e18);
 		assertEq(vault.totalStrategyHoldings(), 0);
-		assertEq(vault.totalHoldings(), 1e18);
-		assertEq(vault.totalFloat(), 1e18);
+		assertEq(vault.totalHoldings(), 1e18 + minLp);
+		assertEq(vault.totalFloat(), 1e18 + minLp);
 		assertEq(vault.balanceOf(address(this)), 1e18);
 		assertEq(vault.balanceOfUnderlying(address(this)), 1e18);
 		assertEq(underlying.balanceOf(address(this)), preDepositBal - 1e18);
@@ -31,8 +31,8 @@ contract VaultDepositWithdrawTest is VaultTest {
 
 		assertEq(vault.exchangeRate(), 1e18);
 		assertEq(vault.totalStrategyHoldings(), 0);
-		assertEq(vault.totalHoldings(), 0);
-		assertEq(vault.totalFloat(), 0);
+		assertEq(vault.totalHoldings(), minLp);
+		assertEq(vault.totalFloat(), minLp);
 		assertEq(vault.balanceOf(address(this)), 0);
 		assertEq(vault.balanceOfUnderlying(address(this)), 0);
 		assertEq(underlying.balanceOf(address(this)), preDepositBal);
@@ -48,8 +48,8 @@ contract VaultDepositWithdrawTest is VaultTest {
 
 		assertEq(vault.exchangeRate(), 1e18);
 		assertEq(vault.totalStrategyHoldings(), 0);
-		assertEq(vault.totalHoldings(), 1e18);
-		assertEq(vault.totalFloat(), 1e18);
+		assertEq(vault.totalHoldings(), 1e18 + minLp);
+		assertEq(vault.totalFloat(), 1e18 + minLp);
 		assertEq(vault.balanceOf(address(this)), 1e18);
 		assertEq(vault.balanceOfUnderlying(address(this)), 1e18);
 		assertEq(underlying.balanceOf(address(this)), preDepositBal - 1e18);
@@ -58,8 +58,8 @@ contract VaultDepositWithdrawTest is VaultTest {
 
 		assertEq(vault.exchangeRate(), 1e18);
 		assertEq(vault.totalStrategyHoldings(), 0);
-		assertEq(vault.totalHoldings(), 0);
-		assertEq(vault.totalFloat(), 0);
+		assertEq(vault.totalHoldings(), minLp);
+		assertEq(vault.totalFloat(), minLp);
 		assertEq(vault.balanceOf(address(this)), 0);
 		assertEq(vault.balanceOfUnderlying(address(this)), 0);
 		assertEq(underlying.balanceOf(address(this)), preDepositBal);
@@ -96,7 +96,7 @@ contract VaultDepositWithdrawTest is VaultTest {
 		vault.withdraw(0.2e18);
 
 		(, uint256 balanceLess) = vault.getStrategyData(strategy1);
-		assertEq(balanceLess, 0);
+		assertApproxEqAbs(balanceLess, 0, minLp);
 	}
 
 	function testWithdrawAfterLoss() public {
@@ -117,7 +117,7 @@ contract VaultDepositWithdrawTest is VaultTest {
 		vault.withdraw(.4e18);
 
 		uint256 balance = vault.balanceOf(address(this));
-		assertEq(balance, .2e18);
+		assertApproxEqAbs(balance, .2e18, minLp);
 	}
 
 	/*///////////////////////////////////////////////////////////////
@@ -168,7 +168,8 @@ contract VaultDepositWithdrawTest is VaultTest {
 	function testAtomicEnterExitSinglePool() public {
 		underlying.mint(address(this), 1e18);
 		underlying.approve(address(vault), 1e18);
-		vault.deposit(1e18);
+		uint256 amount = 1e18 - minLp;
+		vault.deposit(amount);
 
 		vault.trustStrategy(strategy1);
 
@@ -178,8 +179,8 @@ contract VaultDepositWithdrawTest is VaultTest {
 		assertEq(vault.totalStrategyHoldings(), 1e18);
 		assertEq(vault.totalHoldings(), 1e18);
 		assertEq(vault.totalFloat(), 0);
-		assertEq(vault.balanceOf(address(this)), 1e18);
-		assertEq(vault.balanceOfUnderlying(address(this)), 1e18);
+		assertEq(vault.balanceOf(address(this)), amount);
+		assertEq(vault.balanceOfUnderlying(address(this)), amount);
 
 		vault.withdrawFromStrategy(strategy1, 0.5e18);
 
@@ -187,8 +188,8 @@ contract VaultDepositWithdrawTest is VaultTest {
 		assertEq(vault.totalStrategyHoldings(), 0.5e18);
 		assertEq(vault.totalHoldings(), 1e18);
 		assertEq(vault.totalFloat(), 0.5e18);
-		assertEq(vault.balanceOf(address(this)), 1e18);
-		assertEq(vault.balanceOfUnderlying(address(this)), 1e18);
+		assertEq(vault.balanceOf(address(this)), amount);
+		assertEq(vault.balanceOfUnderlying(address(this)), amount);
 
 		vault.withdrawFromStrategy(strategy1, 0.5e18);
 
@@ -196,14 +197,15 @@ contract VaultDepositWithdrawTest is VaultTest {
 		assertEq(vault.totalStrategyHoldings(), 0);
 		assertEq(vault.totalHoldings(), 1e18);
 		assertEq(vault.totalFloat(), 1e18);
-		assertEq(vault.balanceOf(address(this)), 1e18);
-		assertEq(vault.balanceOfUnderlying(address(this)), 1e18);
+		assertEq(vault.balanceOf(address(this)), amount);
+		assertEq(vault.balanceOfUnderlying(address(this)), amount);
 	}
 
 	function testAtomicEnterExitMultiPool() public {
 		underlying.mint(address(this), 1e18);
 		underlying.approve(address(vault), 1e18);
-		vault.deposit(1e18);
+		uint256 amount = 1e18 - minLp;
+		vault.deposit(amount);
 
 		vault.trustStrategy(strategy1);
 
@@ -213,8 +215,8 @@ contract VaultDepositWithdrawTest is VaultTest {
 		assertEq(vault.totalStrategyHoldings(), 0.5e18);
 		assertEq(vault.totalHoldings(), 1e18);
 		assertEq(vault.totalFloat(), 0.5e18);
-		assertEq(vault.balanceOf(address(this)), 1e18);
-		assertEq(vault.balanceOfUnderlying(address(this)), 1e18);
+		assertEq(vault.balanceOf(address(this)), amount);
+		assertEq(vault.balanceOfUnderlying(address(this)), amount);
 
 		vault.trustStrategy(strategy2);
 
@@ -224,8 +226,8 @@ contract VaultDepositWithdrawTest is VaultTest {
 		assertEq(vault.totalStrategyHoldings(), 1e18);
 		assertEq(vault.totalHoldings(), 1e18);
 		assertEq(vault.totalFloat(), 0);
-		assertEq(vault.balanceOf(address(this)), 1e18);
-		assertEq(vault.balanceOfUnderlying(address(this)), 1e18);
+		assertEq(vault.balanceOf(address(this)), amount);
+		assertEq(vault.balanceOfUnderlying(address(this)), amount);
 
 		vault.withdrawFromStrategy(strategy1, 0.5e18);
 
@@ -233,8 +235,8 @@ contract VaultDepositWithdrawTest is VaultTest {
 		assertEq(vault.totalStrategyHoldings(), 0.5e18);
 		assertEq(vault.totalHoldings(), 1e18);
 		assertEq(vault.totalFloat(), 0.5e18);
-		assertEq(vault.balanceOf(address(this)), 1e18);
-		assertEq(vault.balanceOfUnderlying(address(this)), 1e18);
+		assertEq(vault.balanceOf(address(this)), amount);
+		assertEq(vault.balanceOfUnderlying(address(this)), amount);
 
 		vault.withdrawFromStrategy(strategy2, 0.5e18);
 
@@ -242,8 +244,8 @@ contract VaultDepositWithdrawTest is VaultTest {
 		assertEq(vault.totalStrategyHoldings(), 0);
 		assertEq(vault.totalHoldings(), 1e18);
 		assertEq(vault.totalFloat(), 1e18);
-		assertEq(vault.balanceOf(address(this)), 1e18);
-		assertEq(vault.balanceOfUnderlying(address(this)), 1e18);
+		assertEq(vault.balanceOf(address(this)), amount);
+		assertEq(vault.balanceOfUnderlying(address(this)), amount);
 	}
 
 	function testSetTargetFloatPercent() public {
@@ -366,9 +368,9 @@ contract VaultDepositWithdrawTest is VaultTest {
 
 		assertEq(vault.getWithdrawalQueue().length, 5);
 
-		vault.redeem(1e18);
+		vault.redeem(.9e18);
 
-		assertEq(vault.getWithdrawalQueue().length, 1);
+		assertEq(vault.getWithdrawalQueue().length, 2);
 
 		assertEq(address(vault.withdrawalQueue(0)), address(strategy2));
 	}
@@ -384,9 +386,8 @@ contract VaultDepositWithdrawTest is VaultTest {
 
 		assertEq(vault.getWithdrawalQueue().length, 5);
 
-		vault.redeem(1e18);
-
-		assertEq(vault.getWithdrawalQueue().length, 2);
+		vault.redeem(.9e18);
+		assertEq(vault.getWithdrawalQueue().length, 3);
 
 		assertEq(address(vault.withdrawalQueue(0)), address(strategy1));
 		assertEq(address(vault.withdrawalQueue(1)), address(strategy1));
@@ -414,11 +415,11 @@ contract VaultDepositWithdrawTest is VaultTest {
 		vm.warp(block.timestamp + vault.harvestDelay());
 
 		uint256 balanceWProfits = vault.balanceOfUnderlying(address(this));
-		assertEq(balanceWProfits, 2e18, "no more lock");
+		assertEq(balanceWProfits, 2e18 - minLp, "no more lock");
 
 		uint256 userBalance = vault.balanceOfUnderlying(user);
 
-		assertEq(userBalance, 1e18, "should not front-run deposits after profits");
+		assertApproxEqAbs(userBalance, 1e18, minLp, "should not front-run deposits after profits");
 	}
 
 	function testDepositAfterHarvestLoss() public {
@@ -433,7 +434,7 @@ contract VaultDepositWithdrawTest is VaultTest {
 		strategiesToHarvest[0] = strategy1;
 
 		uint256 balance = vault.balanceOfUnderlying(address(this));
-		assertEq(balance, 0.5e18, "balance should reflect loss");
+		assertApproxEqAbs(balance, 0.5e18, minLp, "balance should reflect loss");
 
 		vault.harvest(strategiesToHarvest);
 
@@ -443,10 +444,10 @@ contract VaultDepositWithdrawTest is VaultTest {
 		vm.warp(block.timestamp + vault.harvestDelay());
 
 		uint256 balanceAfterHarvest = vault.balanceOfUnderlying(address(this));
-		assertEq(balanceAfterHarvest, .75e18, "unlocked loss");
+		assertApproxEqAbs(balanceAfterHarvest, .75e18, minLp, "unlocked loss");
 
 		uint256 userBalance = vault.balanceOfUnderlying(user);
 
-		assertEq(userBalance, .75e18, "loss unlocked");
+		assertApproxEqAbs(userBalance, .75e18, minLp, "loss unlocked");
 	}
 }

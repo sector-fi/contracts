@@ -25,7 +25,7 @@ abstract contract IMX is IBase, BaseStrategy, IIMXFarm, IUniLp {
 	event SetMaxTvl(uint256 loanHealth);
 	event SetSafeCollateralRaio(uint256 collateralRatio);
 
-	uint256 constant MINIMUM_LIQUIDITY = 1000;
+	uint256 constant MIN_LIQUIDITY = 1000;
 
 	IERC20 private _underlying;
 	IERC20 private _short;
@@ -240,7 +240,7 @@ abstract contract IMX is IBase, BaseStrategy, IIMXFarm, IUniLp {
 	// increases the position based on current desired balance
 	// ** does not rebalance remaining portfolio
 	function _increasePosition(uint256 amount) internal {
-		if (amount < MINIMUM_LIQUIDITY) return; // avoid imprecision
+		if (amount < MIN_LIQUIDITY) return; // avoid imprecision
 		uint256 amntUnderlying = amount;
 		uint256 amntShort = _underlyingToShort(amntUnderlying);
 		_addLiquidity(amntUnderlying, amntShort);
