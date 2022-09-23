@@ -28,8 +28,8 @@ contract VaultStrategyTest is VaultTest {
 
 		assertEq(vault.exchangeRate(), 1e18);
 		assertEq(vault.totalStrategyHoldings(), 1e18);
-		assertEq(vault.totalHoldings(), 1e18);
-		assertEq(vault.totalFloat(), 0);
+		assertEq(vault.totalHoldings(), 1e18 + minLp);
+		assertEq(vault.totalFloat(), minLp);
 		assertEq(vault.balanceOf(address(this)), 1e18);
 		assertEq(vault.balanceOfUnderlying(address(this)), 1e18);
 
@@ -150,30 +150,30 @@ contract VaultStrategyTest is VaultTest {
 		assertEq(strategyBroken.balanceOf(address(vault)), 1e18);
 		assertEq(strategyBroken.balanceOf(address(this)), 0);
 
-		assertEq(vault.totalHoldings(), 1e18);
+		assertEq(vault.totalHoldings(), 1e18 + minLp);
 		assertEq(vault.totalStrategyHoldings(), 1e18);
-		assertEq(vault.totalFloat(), 0);
+		assertEq(vault.totalFloat(), minLp);
 
 		IERC20[] memory tokens = new IERC20[](1);
 		tokens[0] = IERC20(underlying);
 		vault.seizeStrategy(strategyBroken, tokens);
 
-		assertEq(underlying.balanceOf(address(vault)), 0);
+		assertEq(underlying.balanceOf(address(vault)), minLp);
 		assertEq(underlying.balanceOf(address(this)), 1e18);
 
-		assertEq(vault.totalHoldings(), 0);
+		assertEq(vault.totalHoldings(), minLp);
 		assertEq(vault.totalStrategyHoldings(), 0);
-		assertEq(vault.totalFloat(), 0);
+		assertEq(vault.totalFloat(), minLp);
 
-		assertEq(vault.totalHoldings(), 0);
+		assertEq(vault.totalHoldings(), minLp);
 		assertEq(vault.totalStrategyHoldings(), 0);
-		assertEq(vault.totalFloat(), 0);
+		assertEq(vault.totalFloat(), minLp);
 
 		underlying.transfer(address(vault), 1e18);
 
-		assertEq(vault.totalHoldings(), 1e18);
+		assertEq(vault.totalHoldings(), 1e18 + minLp);
 		assertEq(vault.totalStrategyHoldings(), 0);
-		assertEq(vault.totalFloat(), 1e18);
+		assertEq(vault.totalFloat(), 1e18 + minLp);
 
 		vault.withdraw(1e18);
 
@@ -214,9 +214,8 @@ contract VaultStrategyTest is VaultTest {
 
 		underlying.transfer(address(vault), 1.5e18);
 
-		assertEq(vault.balanceOfUnderlying(address(this)), 1428571428571428571);
-
-		vault.withdraw(1428571428571428571);
+		assertEq(vault.balanceOfUnderlying(address(this)), 1428571428571428163);
+		vault.withdraw(1428571428571428163);
 	}
 
 	// function testFailSeizeWhenPriceMismatch() public {
@@ -287,8 +286,8 @@ contract VaultStrategyTest is VaultTest {
 
 		assertEq(vault.exchangeRate(), 1e18);
 		assertEq(vault.totalStrategyHoldings(), 1e18);
-		assertEq(vault.totalHoldings(), 1e18);
-		assertEq(vault.totalFloat(), 0);
+		assertEq(vault.totalHoldings(), 1e18 + minLp);
+		assertEq(vault.totalFloat(), minLp);
 		assertEq(vault.balanceOf(address(this)), 1e18);
 		assertEq(vault.balanceOfUnderlying(address(this)), 1e18);
 

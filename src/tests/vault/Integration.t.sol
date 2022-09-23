@@ -74,7 +74,8 @@ contract IntegrationTest is ScionTest {
 
 		vm.warp(block.timestamp + vault.harvestDelay());
 
-		vault.withdraw(1363636363636363636);
-		assertEq(vault.balanceOf(address(this)), 0);
+		uint256 balance = vault.balanceOfUnderlying(address(this));
+		vault.withdraw(balance);
+		assertApproxEqAbs(vault.balanceOf(address(this)), 0, 1);
 	}
 }

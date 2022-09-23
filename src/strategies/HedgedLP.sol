@@ -25,7 +25,7 @@ abstract contract HedgedLP is IBase, BaseStrategy, ILending, IFarmableLp, IUniLp
 	event SetMaxTvl(uint256 maxTvl);
 	event SetSafeCollateralRaio(uint256 collateralRatio);
 
-	uint256 constant MINIMUM_LIQUIDITY = 1000;
+	uint256 constant MIN_LIQUIDITY = 1000;
 	uint256 public constant maxPriceOffset = 2000; // maximum offset for rebalanceLoan & manager  methods 20%
 
 	IERC20 private _underlying;
@@ -258,7 +258,7 @@ abstract contract HedgedLP is IBase, BaseStrategy, ILending, IFarmableLp, IUniLp
 	// increases the position based on current desired balance
 	// ** does not rebalance remaining portfolio
 	function _increasePosition(uint256 amount) internal {
-		if (amount < MINIMUM_LIQUIDITY) return; // avoid imprecision
+		if (amount < MIN_LIQUIDITY) return; // avoid imprecision
 		uint256 amntUnderlying = _totalToLp(amount);
 		uint256 amntShort = _underlyingToShort(amntUnderlying);
 		_lend(amount - amntUnderlying);
