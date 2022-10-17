@@ -522,9 +522,6 @@ contract VaultUpgradable is Initializable, ERC20, OwnableUpgradeable, Reentrancy
 
 	/// @notice Calculates the current amount of locked profit.
 	/// @return The current amount of locked profit.
-
-	/// @notice Calculates the current amount of locked profit.
-	/// @return The current amount of locked profit.
 	function lockedProfit() public view returns (uint256, uint256) {
 		// Get the last harvest and harvest delay.
 		uint256 previousHarvest = lastHarvest;
