@@ -1,14 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.16;
 
-// import "../../contracts/libraries/UQ112x112.sol";
 import "../interfaces/uniswap/IUniswapV2Pair.sol";
 import "../interfaces/uniswap/ISimpleUniswapOracle.sol";
 import "hardhat/console.sol";
 
 contract MockUniswapOracle is ISimpleUniswapOracle {
-	// using UQ112x112 for uint224;
-
 	uint32 public constant MIN_T = 3600;
 	struct Pair {
 		uint256 priceCumulativeA;
