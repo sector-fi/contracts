@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-pragma solidity >=0.8.0;
+pragma solidity 0.8.16;
 
 // from Solmate by Rari-Capital https://github.com/Rari-Capital/solmate
 

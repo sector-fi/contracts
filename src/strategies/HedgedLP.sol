@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity 0.8.16;
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
@@ -11,7 +11,7 @@ import "./mixins/IUniLp.sol";
 import "./BaseStrategy.sol";
 import "../interfaces/uniswap/IWETH.sol";
 
-import "hardhat/console.sol";
+// import "hardhat/console.sol";
 
 // @custom: alphabetize dependencies to avoid linearization conflicts
 abstract contract HedgedLP is IBase, BaseStrategy, ILending, IFarmableLp, IUniLp {
@@ -20,18 +20,19 @@ abstract contract HedgedLP is IBase, BaseStrategy, ILending, IFarmableLp, IUniLp
 
 	event RebalanceLoan(address indexed sender, uint256 startLoanHealth, uint256 updatedLoanHealth);
 	event setMinLoanHealth(uint256 loanHealth);
-	event SetMaxPriceMismatch(uint256 loanHealth);
-	event SetRebalanceThreshold(uint256 loanHealth);
-	event SetMaxTvl(uint256 loanHealth);
+	event SetMaxDefaultPriceMismatch(uint256 maxDefaultPriceMismatch);
+	event SetRebalanceThreshold(uint256 rebalanceThreshold);
+	event SetMaxTvl(uint256 maxTvl);
 	event SetSafeCollateralRaio(uint256 collateralRatio);
 
-	uint256 constant MINIMUM_LIQUIDITY = 1000;
+	uint256 constant MIN_LIQUIDITY = 1000;
+	uint256 public constant maxPriceOffset = 2000; // maximum offset for rebalanceLoan & manager  methods 20%
 
 	IERC20 private _underlying;
 	IERC20 private _short;
 
-	uint256 public maxPriceMismatch = 100; // 1%
-	uint256 constant maxAllowedMismatch = 300; // manager cannot make price mismatch more than 3%
+	uint256 public maxDefaultPriceMismatch = 100; // 1%
+	uint256 public constant maxAllowedMismatch = 300; // manager cannot set user-price mismatch to more than 3%
 	uint256 public minLoanHealth = 1.15e18; // how close to liquidation we get
 
 	uint16 public rebalanceThreshold = 400; // 4% of lp
@@ -42,7 +43,10 @@ abstract contract HedgedLP is IBase, BaseStrategy, ILending, IFarmableLp, IUniLp
 	uint256 public constant version = 1;
 
 	modifier checkPrice(uint256 maxSlippage) {
-		if (maxSlippage == 0) maxSlippage = maxPriceMismatch;
+		if (maxSlippage == 0)
+			maxSlippage = maxDefaultPriceMismatch;
+			// manager accounts cannot set maxSlippage bigger than maxPriceOffset
+		else require(maxSlippage <= maxPriceOffset || isGuardian(msg.sender), "HLP: MAX_MISMATCH");
 		require(getPriceOffset() <= maxSlippage, "HLP: PRICE_MISMATCH");
 		_;
 	}
@@ -64,7 +68,7 @@ abstract contract HedgedLP is IBase, BaseStrategy, ILending, IFarmableLp, IUniLp
 
 		// emit default settings events
 		emit setMinLoanHealth(minLoanHealth);
-		emit SetMaxPriceMismatch(maxPriceMismatch);
+		emit SetMaxDefaultPriceMismatch(maxDefaultPriceMismatch);
 		emit SetRebalanceThreshold(rebalanceThreshold);
 		emit SetSafeCollateralRaio(_safeCollateralRatio);
 
@@ -80,6 +84,7 @@ abstract contract HedgedLP is IBase, BaseStrategy, ILending, IFarmableLp, IUniLp
 	}
 
 	function setSafeCollateralRatio(uint256 safeCollateralRatio_) public onlyOwner {
+		require(safeCollateralRatio_ >= 1000 && safeCollateralRatio_ <= 8500, "HLP: BAD_INPUT");
 		_safeCollateralRatio = safeCollateralRatio_;
 		emit SetSafeCollateralRaio(safeCollateralRatio_);
 	}
@@ -90,23 +95,30 @@ abstract contract HedgedLP is IBase, BaseStrategy, ILending, IFarmableLp, IUniLp
 
 	// OWNER CONFIG
 	function setMinLoanHeath(uint256 minLoanHealth_) public onlyOwner {
+		require(minLoanHealth_ > 1e18, "HLP: BAD_INPUT");
 		minLoanHealth = minLoanHealth_;
 		emit setMinLoanHealth(minLoanHealth_);
 	}
 
-	// manager can adjust max price if needed
-	function setMaxPriceMismatch(uint256 maxPriceMismatch_) public onlyAuth {
-		require(msg.sender == owner() || maxAllowedMismatch >= maxPriceMismatch_, "HLP: TOO LARGE");
-		maxPriceMismatch = maxPriceMismatch_;
-		emit SetMaxPriceMismatch(maxPriceMismatch_);
+	// guardian can adjust max default price mismatch if needed
+	function setMaxDefaultPriceMismatch(uint256 maxDefaultPriceMismatch_) public onlyGuardian {
+		require(maxDefaultPriceMismatch_ >= 25, "HLP: BAD_INPUT"); // no less than .25%
+		require(
+			msg.sender == owner() || maxAllowedMismatch >= maxDefaultPriceMismatch_,
+			"HLP: BAD_INPUT"
+		);
+		maxDefaultPriceMismatch = maxDefaultPriceMismatch_;
+		emit SetMaxDefaultPriceMismatch(maxDefaultPriceMismatch_);
 	}
 
 	function setRebalanceThreshold(uint16 rebalanceThreshold_) public onlyOwner {
+		// rebalance threshold should not be lower than 1% (2% price move)
+		require(rebalanceThreshold_ >= 100, "HLP: BAD_INPUT");
 		rebalanceThreshold = rebalanceThreshold_;
 		emit SetRebalanceThreshold(rebalanceThreshold_);
 	}
 
-	function setMaxTvl(uint256 maxTvl_) public onlyAuth {
+	function setMaxTvl(uint256 maxTvl_) public onlyGuardian {
 		_maxTvl = maxTvl_;
 		emit SetMaxTvl(maxTvl_);
 	}
@@ -121,11 +133,17 @@ abstract contract HedgedLP is IBase, BaseStrategy, ILending, IFarmableLp, IUniLp
 		return _underlying;
 	}
 
-	// public method that anyone can call to prevent an immenent loan liquidation
-	// this is an emergency measure in case rebalance() is not called in time
-	// price check is not necessary here because we are only removing LP and
-	// if swap price differs it is to our benefit
+	// public method that anyone can call if loan health falls below minLoanHealth
+	// this method will succeed only when loanHealth is below minimum
 	function rebalanceLoan() public nonReentrant {
+		// limit offset to maxPriceOffset manager to prevent misuse
+		if (isGuardian(msg.sender)) {} else if (isManager(msg.sender))
+			require(getPriceOffset() <= maxPriceOffset, "HLP: MAX_MISMATCH");
+			// public methods need more protection agains griefing
+			// NOTE: this may prevent gelato bots from executing the tx in the case of
+			// a sudden price spike on a CEX
+		else require(getPriceOffset() <= maxDefaultPriceMismatch, "HLP: PRICE_MISMATCH");
+
 		uint256 _loanHealth = loanHealth();
 		require(_loanHealth <= minLoanHealth, "HLP: SAFE");
 		_rebalanceLoan(_loanHealth);
@@ -163,7 +181,6 @@ abstract contract HedgedLP is IBase, BaseStrategy, ILending, IFarmableLp, IUniLp
 		newShares = totalSupply() == 0 ? amount : (totalSupply() * amount) / tvl;
 		_underlying.safeTransferFrom(vault(), address(this), amount);
 		_increasePosition(amount);
-		emit Deposit(msg.sender, amount);
 	}
 
 	function _withdraw(uint256 amount)
@@ -195,8 +212,6 @@ abstract contract HedgedLP is IBase, BaseStrategy, ILending, IFarmableLp, IUniLp
 		burnShares = min(((amount + 1) * totalSupply()) / tvl, totalSupply());
 
 		_underlying.safeTransferFrom(address(this), vault(), amount);
-
-		emit Withdraw(msg.sender, amount);
 	}
 
 	// decreases position based on current desired balance
@@ -243,7 +258,7 @@ abstract contract HedgedLP is IBase, BaseStrategy, ILending, IFarmableLp, IUniLp
 	// increases the position based on current desired balance
 	// ** does not rebalance remaining portfolio
 	function _increasePosition(uint256 amount) internal {
-		if (amount < MINIMUM_LIQUIDITY) return; // avoid imprecision
+		if (amount < MIN_LIQUIDITY) return; // avoid imprecision
 		uint256 amntUnderlying = _totalToLp(amount);
 		uint256 amntShort = _underlyingToShort(amntUnderlying);
 		_lend(amount - amntUnderlying);
@@ -258,7 +273,7 @@ abstract contract HedgedLP is IBase, BaseStrategy, ILending, IFarmableLp, IUniLp
 		HarvestSwapParms[] calldata lendingParams
 	)
 		external
-		onlyAuth
+		onlyManager
 		checkPrice(0)
 		nonReentrant
 		returns (uint256[] memory farmHarvest, uint256[] memory lendHarvest)
@@ -272,7 +287,12 @@ abstract contract HedgedLP is IBase, BaseStrategy, ILending, IFarmableLp, IUniLp
 		emit Harvest(startTvl);
 	}
 
-	function rebalance(uint256 maxSlippage) external onlyAuth checkPrice(maxSlippage) nonReentrant {
+	function rebalance(uint256 maxSlippage)
+		external
+		onlyManager
+		checkPrice(maxSlippage)
+		nonReentrant
+	{
 		// call this first to ensure we use an updated borrowBalance when computing offset
 		uint256 tvl = _getAndUpdateTVL();
 		uint256 positionOffset = getPositionOffset();
@@ -289,24 +309,32 @@ abstract contract HedgedLP is IBase, BaseStrategy, ILending, IFarmableLp, IUniLp
 	}
 
 	// note: one should call harvest immediately before close position
-	function closePosition(uint256 maxSlippage) public checkPrice(maxSlippage) onlyAuth {
+	function closePosition(uint256 maxSlippage) public checkPrice(maxSlippage) onlyGuardian {
 		_closePosition();
-	}
-
-	// in case of emergency - withdraw lp tokens from farm
-	function withdrawFromFarm() public onlyAuth {
-		_withdrawFromFarm(_getFarmLp());
-	}
-
-	// in case of emergency - withdraw stuck collateral
-	function redeemCollateral(uint256 repayAmnt, uint256 withdrawAmnt) public onlyAuth {
-		_repay(repayAmnt);
-		_redeem(withdrawAmnt);
+		emit UpdatePosition();
 	}
 
 	// in case of emergency - remove LP
-	function removeLiquidity(uint256 removeLp) public onlyAuth {
+	function removeLiquidity(uint256 removeLp, uint256 maxSlippage)
+		public
+		checkPrice(maxSlippage)
+		onlyGuardian
+	{
 		_removeLiquidity(removeLp);
+		emit UpdatePosition();
+	}
+
+	// in case of emergency - withdraw lp tokens from farm
+	function withdrawFromFarm() public onlyGuardian {
+		_withdrawFromFarm(_getFarmLp());
+		emit UpdatePosition();
+	}
+
+	// in case of emergency - withdraw stuck collateral
+	function redeemCollateral(uint256 repayAmnt, uint256 withdrawAmnt) public onlyGuardian {
+		_repay(repayAmnt);
+		_redeem(withdrawAmnt);
+		emit UpdatePosition();
 	}
 
 	function _closePosition() internal returns (uint256) {
@@ -442,8 +470,8 @@ abstract contract HedgedLP is IBase, BaseStrategy, ILending, IFarmableLp, IUniLp
 	// TVL
 
 	function getMaxTvl() public view override returns (uint256) {
-		// _borrowToTotal(_maxBorrow) would give us the precise max,
-		// but we want to stay at least a getCollateralRatio away from max borrow
+		// we don't want to get precise max borrow amaount available,
+		// we want to stay at least a getCollateralRatio away from max borrow
 		return min(_maxTvl, _oraclePriceOfShort(_maxBorrow() + _getBorrowBalance()));
 	}
 
@@ -502,6 +530,14 @@ abstract contract HedgedLP is IBase, BaseStrategy, ILending, IFarmableLp, IUniLp
 		tvl = collateralBalance + lpBalance - borrowBalance + underlyingBalance + shortBalance;
 	}
 
+	function getLPBalances() public view returns (uint256 underlyingLp, uint256 shortLp) {
+		return _getLPBalances();
+	}
+
+	function getLiquidity() public view returns (uint256) {
+		return _getLiquidity();
+	}
+
 	function getPositionOffset() public view returns (uint256 positionOffset) {
 		(, uint256 shortLp) = _getLPBalances();
 		uint256 borrowBalance = _getBorrowBalance();
@@ -529,11 +565,6 @@ abstract contract HedgedLP is IBase, BaseStrategy, ILending, IFarmableLp, IUniLp
 	function _totalToLp(uint256 total) internal view returns (uint256) {
 		uint256 cRatio = getCollateralRatio();
 		return (total * cRatio) / (BPS_ADJUST + cRatio);
-	}
-
-	function _borrowToTotal(uint256 amount) internal view returns (uint256) {
-		uint256 cRatio = getCollateralRatio();
-		return (amount * (BPS_ADJUST + cRatio)) / cRatio;
 	}
 
 	// this is the current uniswap price

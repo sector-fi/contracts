@@ -13,8 +13,16 @@ coverage
 coverage.json
 
 cache
+hh-cache
 artifacts
 out
+
+# local contracts
+deployments/localhost/* 
+deployments/hardhat/*
+# except chainId
+!deployments/localhost/.chainId
+!deployments/hardhat/.chainId
 
 # ZeppelinOS
 .openzeppelin/dev-*.json

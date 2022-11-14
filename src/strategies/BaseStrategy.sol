@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity 0.8.16;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -18,8 +18,13 @@ abstract contract BaseStrategy is Strategy, Ownable, ReentrancyGuard {
 		_;
 	}
 
-	modifier onlyAuth() {
-		require(msg.sender == owner() || _managers[msg.sender] == true, "Strat: NO_AUTH");
+	modifier onlyGuardian() {
+		require(isGuardian(msg.sender), "Strat: ONLY_GUARDIAN");
+		_;
+	}
+
+	modifier onlyManager() {
+		require(isManager(msg.sender), "Strat: ONLY_MANAGER");
 		_;
 	}
 
@@ -32,6 +37,7 @@ abstract contract BaseStrategy is Strategy, Ownable, ReentrancyGuard {
 	string public symbol;
 
 	mapping(address => bool) private _managers;
+	mapping(address => bool) private _guardians;
 
 	uint256 public BASE_UNIT; // 10 ** decimals
 
@@ -41,7 +47,9 @@ abstract contract BaseStrategy is Strategy, Ownable, ReentrancyGuard {
 	event Rebalance(uint256 shortPrice, uint256 tvlBeforeRebalance, uint256 positionOffset);
 	event EmergencyWithdraw(address indexed recipient, IERC20[] tokens);
 	event ManagerUpdate(address indexed account, bool isManager);
+	event GuardianUpdate(address indexed account, bool isGuardian);
 	event VaultUpdate(address indexed vault);
+	event UpdatePosition();
 
 	constructor(
 		address vault_,
@@ -84,6 +92,7 @@ abstract contract BaseStrategy is Strategy, Ownable, ReentrancyGuard {
 		uint256 newShares = _deposit(amount);
 		_shares += newShares;
 		errCode = 0;
+		emit Deposit(msg.sender, amount);
 	}
 
 	function redeemUnderlying(uint256 amount)
@@ -95,16 +104,26 @@ abstract contract BaseStrategy is Strategy, Ownable, ReentrancyGuard {
 		uint256 burnShares = _withdraw(amount);
 		_shares -= burnShares;
 		errCode = 0;
+		emit Withdraw(msg.sender, amount);
 	}
 
 	// GOVERNANCE - MANAGER
 	function isManager(address user) public view returns (bool) {
-		return _managers[user];
+		return _managers[user] || user == owner() || _guardians[user];
 	}
 
-	function setManager(address user, bool _isManager) external onlyOwner {
+	function setManager(address user, bool _isManager) external onlyGuardian {
 		_managers[user] = _isManager;
 		emit ManagerUpdate(user, _isManager);
+	}
+
+	function isGuardian(address user) public view returns (bool) {
+		return _guardians[user] || user == owner();
+	}
+
+	function setGuardian(address user, bool _isGuardian) external onlyOwner {
+		_guardians[user] = _isGuardian;
+		emit GuardianUpdate(user, _isGuardian);
 	}
 
 	function setVault(address vault_) external onlyOwner {
@@ -126,7 +145,7 @@ abstract contract BaseStrategy is Strategy, Ownable, ReentrancyGuard {
 			if (balance != 0) token.safeTransfer(recipient, balance);
 		}
 		// send ETH to vault (no reason it should go to recipient / owner)
-		if (address(this).balance > 0) SafeETH.safeTransferETH(vault(), address(this).balance);
+		if (address(this).balance > 0) SafeETH.safeTransferETH(recipient, address(this).balance);
 		emit EmergencyWithdraw(recipient, tokens);
 	}
 

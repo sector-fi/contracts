@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-pragma solidity >=0.8.0;
+pragma solidity 0.8.16;
 
 import { ScionTest } from "../utils/ScionTest.sol";
 import { MockERC20 } from "../mocks/MockERC20.sol";
@@ -21,6 +21,8 @@ contract VaultTest is ScionTest {
 	uint8 DECIMALS = 18;
 	MockERC20StrategyBroken strategyBroken;
 	MockERC20StrategyPriceMismatch strategyBadPrice;
+
+	uint256 minLp;
 
 	function setUp() public {
 		underlying = new MockERC20("Mock Token", "TKN", DECIMALS);
@@ -52,6 +54,15 @@ contract VaultTest is ScionTest {
 
 		// make sure our timestamp is > harvestDelay
 		vm.warp(block.timestamp + vault.harvestDelay());
+
+		// deposit locked lp
+		minLp = vault.MIN_LIQUIDITY();
+		vault.setAllowed(address(999), true);
+		vm.startPrank(address(999));
+		deal(address(underlying), address(999), minLp);
+		underlying.approve(address(vault), minLp);
+		vault.deposit(minLp);
+		vm.stopPrank();
 	}
 
 	/// UTILS

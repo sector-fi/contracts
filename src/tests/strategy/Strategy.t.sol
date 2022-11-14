@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity 0.8.16;
 
 import { ScionTest } from "../utils/ScionTest.sol";
 import { IUniswapV2Pair } from "../../interfaces/uniswap/IUniswapV2Pair.sol";
@@ -7,14 +7,22 @@ import { HarvestSwapParms } from "../../strategies/mixins/IFarmable.sol";
 import { MockHedgedLP } from "../mocks/MockHedgedLP.sol";
 import { MockERC20 } from "../mocks/MockERC20.sol";
 import { MockPair } from "../mocks/MockPair.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "../../libraries/SafeETH.sol";
+
 import "hardhat/console.sol";
 
 contract StrategyTest is ScionTest {
 	uint256 START_EXCHANGE_RATE = 2.5e18;
-	MockHedgedLP strategy;
+	MockHedgedLP strategy; // for testing default values
+	MockHedgedLP testStrat; // for arbitrary configs
 	MockERC20 underlying;
 	MockERC20 short;
 	MockPair pair;
+	address guardian = address(10);
+	address manager = address(11);
+	address owner = address(this);
+	IERC20[] tokens;
 
 	HarvestSwapParms[] harvestParams;
 
@@ -37,6 +45,19 @@ contract StrategyTest is ScionTest {
 			address(pair),
 			START_EXCHANGE_RATE
 		);
+		strategy.setGuardian(guardian, true);
+		strategy.setManager(manager, true);
+
+		testStrat = new MockHedgedLP(
+			address(underlying),
+			address(short),
+			address(this),
+			address(pair),
+			START_EXCHANGE_RATE
+		);
+
+		testStrat.setGuardian(guardian, true);
+		testStrat.setManager(manager, true);
 	}
 
 	/// UTILS
@@ -44,6 +65,173 @@ contract StrategyTest is ScionTest {
 		underlying.mint(address(this), amount);
 		underlying.approve(address(strategy), amount);
 		strategy.mint(amount);
+	}
+
+	/// INIT
+
+	function testShouldInit() public {
+		assertTrue(testStrat.isInitialized());
+		vm.expectRevert("INITIALIZED");
+		testStrat.init(address(underlying), address(short));
+
+		address vault = address(777);
+		testStrat.setVault(vault);
+		assertEq(testStrat.vault(), vault);
+
+		assertEq(testStrat.balanceOfUnderlying(address(this)), 0);
+		assertFalse(testStrat.isCEther());
+
+		assertEq(testStrat.decimals(), underlying.decimals());
+	}
+
+	/// ROLES
+
+	function testRoles() public {
+		address tGuardian = address(100);
+		address tManager = address(101);
+		strategy.setGuardian(tGuardian, true);
+		assertTrue(strategy.isGuardian(tGuardian));
+		assertTrue(strategy.isGuardian(owner));
+
+		strategy.setManager(tManager, true);
+		assertTrue(strategy.isManager(tManager));
+		assertTrue(strategy.isManager(guardian));
+		assertTrue(strategy.isManager(tGuardian));
+		assertTrue(strategy.isManager(owner));
+
+		// guardian can set manager
+		vm.prank(guardian);
+		strategy.setManager(tManager, false);
+		assertFalse(strategy.isManager(tManager));
+
+		// guardian cannot set guardain
+		vm.prank(guardian);
+		vm.expectRevert("Ownable: caller is not the owner");
+		strategy.setGuardian(tGuardian, false);
+
+		strategy.setManager(tManager, true);
+
+		// manager cannot set manager or guardian
+		vm.prank(manager);
+		vm.expectRevert("Strat: ONLY_GUARDIAN");
+		strategy.setManager(address(1), true);
+
+		vm.prank(manager);
+		vm.expectRevert("Ownable: caller is not the owner");
+		strategy.setGuardian(address(1), true);
+	}
+
+	/// EMERGENCY WITHDRAW
+
+	function testEmergencyWithdraw() public {
+		uint256 amount = 1e18;
+		underlying.mint(address(testStrat), amount);
+		SafeETH.safeTransferETH(address(testStrat), amount);
+
+		address withdrawTo = address(222);
+
+		tokens.push(underlying);
+		testStrat.emergencyWithdraw(withdrawTo, tokens);
+
+		assertEq(underlying.balanceOf(withdrawTo), amount);
+		assertEq(withdrawTo.balance, amount);
+
+		assertEq(underlying.balanceOf(address(testStrat)), 0);
+		assertEq(address(testStrat).balance, 0);
+	}
+
+	// CONFIG
+
+	function testSafeCollateralRatio() public {
+		vm.expectRevert("HLP: BAD_INPUT");
+		testStrat.setSafeCollateralRatio(900);
+
+		vm.expectRevert("HLP: BAD_INPUT");
+		testStrat.setSafeCollateralRatio(9000);
+
+		testStrat.setSafeCollateralRatio(7700);
+		assertEq(testStrat.safeCollateralRatio(), 7700);
+
+		vm.prank(guardian);
+		vm.expectRevert("Ownable: caller is not the owner");
+		testStrat.setSafeCollateralRatio(7700);
+
+		vm.prank(manager);
+		vm.expectRevert("Ownable: caller is not the owner");
+		testStrat.setSafeCollateralRatio(7700);
+	}
+
+	function testMinLoanHealth() public {
+		vm.expectRevert("HLP: BAD_INPUT");
+		testStrat.setMinLoanHeath(0.9e18);
+
+		testStrat.setMinLoanHeath(1.29e18);
+		assertEq(testStrat.minLoanHealth(), 1.29e18);
+
+		vm.prank(guardian);
+		vm.expectRevert("Ownable: caller is not the owner");
+		testStrat.setMinLoanHeath(1.29e18);
+
+		vm.prank(manager);
+		vm.expectRevert("Ownable: caller is not the owner");
+		testStrat.setMinLoanHeath(1.29e18);
+	}
+
+	function testRebalanceThreshold() public {
+		vm.expectRevert("HLP: BAD_INPUT");
+		testStrat.setRebalanceThreshold(90);
+
+		testStrat.setRebalanceThreshold(500);
+		assertEq(testStrat.rebalanceThreshold(), 500);
+
+		vm.prank(guardian);
+		vm.expectRevert("Ownable: caller is not the owner");
+		testStrat.setRebalanceThreshold(500);
+
+		vm.prank(manager);
+		vm.expectRevert("Ownable: caller is not the owner");
+		testStrat.setRebalanceThreshold(500);
+	}
+
+	function testSetMaxPriceMismatch() public {
+		strategy.setMaxDefaultPriceMismatch(1e18);
+	}
+
+	function testSetMaxTvl() public {
+		strategy.setMaxTvl(2e18);
+
+		assertEq(strategy.getMaxTvl(), 2e18);
+
+		underlying.mint(address(this), 2e18);
+		underlying.approve(address(strategy), 2e18);
+
+		strategy.mint(2e18);
+
+		strategy.setMaxTvl(1e18);
+
+		assertEq(strategy.getMaxTvl(), 1e18);
+
+		vm.prank(address(1));
+		vm.expectRevert("Strat: ONLY_GUARDIAN");
+		strategy.setMaxTvl(2e18);
+	}
+
+	function testMaxDefaultPriceMismatch() public {
+		vm.expectRevert("HLP: BAD_INPUT");
+		testStrat.setMaxDefaultPriceMismatch(24);
+
+		uint256 bigMismatch = 2 + testStrat.maxAllowedMismatch();
+		vm.prank(guardian);
+		vm.expectRevert("HLP: BAD_INPUT");
+		testStrat.setMaxDefaultPriceMismatch(bigMismatch);
+
+		vm.prank(guardian);
+		testStrat.setMaxDefaultPriceMismatch(120);
+		assertEq(testStrat.maxDefaultPriceMismatch(), 120);
+
+		vm.prank(manager);
+		vm.expectRevert("Strat: ONLY_GUARDIAN");
+		testStrat.setMaxDefaultPriceMismatch(120);
 	}
 
 	/*///////////////////////////////////////////////////////////////
@@ -401,42 +589,52 @@ contract StrategyTest is ScionTest {
 		console.log("loan health / offset", health, positionOffset);
 	}
 
+	function testMaxPriceOffset() public {
+		underlying.mint(address(this), 1e18);
+		underlying.approve(address(strategy), 1e18);
+		strategy.mint(1e18);
+		// strategy.changePrice(0.7e18);
+		movePrice(IUniswapV2Pair(address(pair)), underlying, short, 0.7e18);
+
+		uint256 offset = strategy.getPriceOffset();
+		vm.prank(manager);
+		vm.expectRevert("HLP: MAX_MISMATCH");
+		strategy.rebalance(offset);
+
+		vm.prank(manager);
+		vm.expectRevert("HLP: MAX_MISMATCH");
+		strategy.rebalanceLoan();
+
+		vm.prank(guardian);
+		strategy.closePosition(offset);
+	}
+
+	function testSlippage() public {
+		underlying.mint(address(this), 1e18);
+		underlying.approve(address(strategy), 1e18);
+		strategy.mint(1e18);
+
+		// this creates a price offset
+		// strategy.changePrice(0.7e18);
+		movePrice(IUniswapV2Pair(address(pair)), underlying, short, 0.7e18);
+
+		vm.prank(address(1));
+		vm.expectRevert("HLP: PRICE_MISMATCH");
+		strategy.rebalanceLoan();
+
+		vm.expectRevert("HLP: PRICE_MISMATCH");
+		strategy.rebalance(0);
+
+		vm.expectRevert("HLP: PRICE_MISMATCH");
+		strategy.closePosition(0);
+
+		vm.expectRevert("HLP: PRICE_MISMATCH");
+		strategy.removeLiquidity(1000, 0);
+	}
+
 	/*///////////////////////////////////////////////////////////////
 	                    HEDGEDLP TESTS
 	//////////////////////////////////////////////////////////////*/
-	function testSetMaxPriceMismatch() public {
-		strategy.setMaxPriceMismatch(1e18);
-	}
-
-	function setRebalanceThreshold() public {
-		strategy.setRebalanceThreshold(515);
-		assertEq(strategy.rebalanceThreshold(), 515);
-
-		strategy.setRebalanceThreshold(0);
-		assertEq(strategy.rebalanceThreshold(), 0);
-
-		strategy.setRebalanceThreshold(1);
-		assertEq(strategy.rebalanceThreshold(), 1);
-	}
-
-	function testSetMaxTvl() public {
-		strategy.setMaxTvl(2e18);
-
-		assertEq(strategy.getMaxTvl(), 2e18);
-
-		underlying.mint(address(this), 2e18);
-		underlying.approve(address(strategy), 2e18);
-
-		strategy.mint(2e18);
-
-		strategy.setMaxTvl(1e18);
-
-		assertEq(strategy.getMaxTvl(), 1e18);
-
-		vm.prank(address(1));
-		vm.expectRevert("Strat: NO_AUTH");
-		strategy.setMaxTvl(2e18);
-	}
 
 	function testDepositOverMaxTvl() public {
 		strategy.setMaxTvl(1e18);
@@ -454,14 +652,44 @@ contract StrategyTest is ScionTest {
 		strategy.mint(1e18);
 
 		strategy.closePosition(strategy.getPriceOffset());
-		assertApproxEqAbs(strategy.borrowAmount(), 0, 10);
-		assertApproxEqAbs(strategy.lendAmount(), 0, 10);
 		assertApproxEqAbs(strategy.balanceOfUnderlying(), 1e18, 10);
+
+		assertZeroPosition();
 
 		uint256 priceOffset = strategy.getPriceOffset();
 		vm.prank(address(1));
-		vm.expectRevert("Strat: NO_AUTH");
+		vm.expectRevert("Strat: ONLY_GUARDIAN");
 		strategy.closePosition(priceOffset);
+	}
+
+	// included in fuzz below, but used for coverage
+	function testClosePositionWithOffset() public {
+		uint256 priceAdjust = 0.5e18;
+		underlying.mint(address(this), 1e18);
+		underlying.approve(address(strategy), 1e18);
+		strategy.mint(1e18);
+
+		strategy.changePrice(priceAdjust);
+		movePrice(IUniswapV2Pair(address(pair)), underlying, short, priceAdjust);
+
+		uint256 priceOffset = strategy.getPriceOffset();
+		strategy.closePosition(priceOffset);
+		assertZeroPosition();
+	}
+
+	function testClosePositionWithOffsetFuzz(uint104 fuzz) public {
+		uint256 priceAdjust = toRangeUint104(fuzz, uint256(.5e18), uint256(2e18));
+		underlying.mint(address(this), 1e18);
+		underlying.approve(address(strategy), 1e18);
+
+		strategy.mint(1e18);
+
+		strategy.changePrice(priceAdjust);
+		movePrice(IUniswapV2Pair(address(pair)), underlying, short, priceAdjust);
+
+		uint256 priceOffset = strategy.getPriceOffset();
+		strategy.closePosition(priceOffset);
+		assertZeroPosition();
 	}
 
 	function testClosePositionFuzz(uint104 fuzz) public {
@@ -504,7 +732,7 @@ contract StrategyTest is ScionTest {
 		addBalance(1e18);
 		strategy.withdrawFromFarm();
 		uint256 lp = strategy.pair().balanceOf(address(strategy));
-		strategy.removeLiquidity(lp);
+		strategy.removeLiquidity(lp, 0);
 		assertEq(strategy.pair().balanceOf(address(strategy)), 0);
 	}
 
@@ -516,5 +744,15 @@ contract StrategyTest is ScionTest {
 		(, uint256 newCollateralBalance, uint256 newShortPosition, , , ) = strategy.getTVL();
 		assertEq(newCollateralBalance, collateralBalance - collateralBalance / 10);
 		assertEq(newShortPosition, shortPosition - shortPosition / 10);
+	}
+
+	// UTILS
+
+	function assertZeroPosition() public {
+		assertApproxEqAbs(strategy.borrowAmount(), 0, 10);
+		assertApproxEqAbs(strategy.lendAmount(), 0, 10);
+		(uint256 uLp, uint256 sLp) = strategy.getLPBalances();
+		assertEq(uLp, 0);
+		assertEq(sLp, 0);
 	}
 }

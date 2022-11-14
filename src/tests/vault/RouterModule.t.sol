@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-pragma solidity >=0.8.0;
+pragma solidity 0.8.16;
 
 import { WETH } from "../mocks/WETH.sol";
 import { ScionTest } from "../utils/ScionTest.sol";
@@ -38,6 +38,14 @@ contract VaultRouterModuleTest is ScionTest {
 		vaultRouterModule = new VaultRouterModule();
 
 		wethVault.setAllowed(address(vaultRouterModule), true);
+
+		uint256 minLp = wethVault.MIN_LIQUIDITY();
+		wethVault.setAllowed(address(999), true);
+		vm.startPrank(address(999));
+		deal(address(weth), address(999), minLp);
+		weth.approve(address(wethVault), minLp);
+		wethVault.deposit(minLp);
+		vm.stopPrank();
 	}
 
 	/*///////////////////////////////////////////////////////////////
@@ -56,7 +64,7 @@ contract VaultRouterModuleTest is ScionTest {
 		assertEq(wethVault.balanceOf(address(this)), 1e18);
 		assertEq(wethVault.balanceOfUnderlying(address(this)), 1 ether);
 
-		wethVault.approve(address(vaultRouterModule), 1e18);
+		wethVault.approve(address(vaultRouterModule), 1.1e18);
 		vaultRouterModule.withdrawETHFromVault(wethVault, 1 ether);
 
 		assertEq(address(this).balance, startingETHBal);

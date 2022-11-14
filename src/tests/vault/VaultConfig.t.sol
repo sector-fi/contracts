@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-pragma solidity >=0.8.0;
+pragma solidity 0.8.16;
 
 import { VaultTest } from "./Vault.t.sol";
 import { Strategy } from "../../interfaces/Strategy.sol";
@@ -196,7 +196,7 @@ contract VaultConfigTest is VaultTest {
 		underlying.mint(address(this), 5e18);
 		underlying.approve(address(vault), 5e18);
 
-		vault.deposit(5e18);
+		vault.deposit(5e18 - minLp);
 
 		vault.setMaxTvl(1e18);
 
@@ -208,6 +208,8 @@ contract VaultConfigTest is VaultTest {
 	}
 
 	function testSetMaxTvlFuzz(uint128 fuzz) public {
+		fuzz = uint128(toRange(fuzz, minLp, type(uint128).max));
+
 		assertEq(vault.getMaxTvl(), type(uint256).max);
 
 		vault.setMaxTvl(fuzz);
@@ -217,7 +219,7 @@ contract VaultConfigTest is VaultTest {
 		underlying.mint(address(this), fuzz);
 		underlying.approve(address(vault), fuzz);
 
-		vault.deposit(fuzz);
+		vault.deposit(fuzz - minLp);
 
 		vault.setMaxTvl(1e18);
 
@@ -245,15 +247,15 @@ contract VaultConfigTest is VaultTest {
 		underlying.mint(address(this), 5e18 + 25e18);
 		underlying.approve(address(vault), 5e18 + 25e18);
 
-		vault.deposit(5e18 + 25e18);
+		vault.deposit(5e18 + 25e18 - minLp);
 
-		assertEq(vault.balanceOfUnderlying(address(this)), 5e18 + 25e18);
+		assertEq(vault.balanceOfUnderlying(address(this)), 5e18 + 25e18 - minLp);
 		vault.popFromWithdrawalQueue();
 		vault.popFromWithdrawalQueue();
 	}
 
 	function testUpdateStratTvlFuzz(uint128 fuzz) public {
-		fuzz = uint128(toRange(fuzz, 0, type(uint128).max - 25e18));
+		fuzz = uint128(toRange(fuzz, minLp, type(uint128).max - 25e18));
 
 		vault.pushToWithdrawalQueue(strategy1);
 		vault.pushToWithdrawalQueue(strategy2);
@@ -276,9 +278,9 @@ contract VaultConfigTest is VaultTest {
 		underlying.mint(address(this), fuzz + 25e18);
 		underlying.approve(address(vault), fuzz + 25e18);
 
-		vault.deposit(fuzz + 25e18);
+		vault.deposit(fuzz + 25e18 - minLp);
 
-		assertEq(vault.balanceOfUnderlying(address(this)), fuzz + 25e18);
+		assertEq(vault.balanceOfUnderlying(address(this)), fuzz + 25e18 - minLp);
 		vault.popFromWithdrawalQueue();
 		vault.popFromWithdrawalQueue();
 

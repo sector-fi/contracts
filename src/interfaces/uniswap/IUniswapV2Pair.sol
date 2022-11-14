@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity 0.8.16;
 
 interface IUniswapV2Pair {
 	event Approval(address indexed owner, address indexed spender, uint256 value);
@@ -55,7 +55,7 @@ interface IUniswapV2Pair {
 	);
 	event Sync(uint112 reserve0, uint112 reserve1);
 
-	function MINIMUM_LIQUIDITY() external pure returns (uint256);
+	function MIN_LIQUIDITY() external pure returns (uint256);
 
 	function factory() external view returns (address);
 

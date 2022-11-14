@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-pragma solidity >=0.8.0;
+pragma solidity 0.8.16;
 
 import { ScionTest } from "../utils/ScionTest.sol";
 import { MockERC20 } from "../mocks/MockERC20.sol";
@@ -74,7 +74,8 @@ contract IntegrationTest is ScionTest {
 
 		vm.warp(block.timestamp + vault.harvestDelay());
 
-		vault.withdraw(1363636363636363636);
-		assertEq(vault.balanceOf(address(this)), 0);
+		uint256 balance = vault.balanceOfUnderlying(address(this));
+		vault.withdraw(balance);
+		assertApproxEqAbs(vault.balanceOf(address(this)), 0, 1);
 	}
 }
